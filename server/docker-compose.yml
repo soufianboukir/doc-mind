@@ -1,0 +1,27 @@
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: docmind-db
+    restart: unless-stopped # If the database crashes or Docker restarts, automatically restart this container.
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-docmind} # Use VARIABLE if it exists; otherwise use the default value.
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      POSTGRES_DB: ${POSTGRES_DB:-docmind}
+    ports:
+      - "5432:5432"
+    volumes:
+      # Named volume: data survives container restarts/recreates
+      # stores the database files on the host machine in a Docker-managed volume.
+      - docmind_pgdata:/var/lib/postgresql/data
+      # Anything in this folder runs automatically, in filename order,
+      # ONLY the first time the container starts against an empty
+      # data directory. To re-apply schema.sql later, run it manually
+      - ./db/schema.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro # ro means read-only, so the container can't modify your local file.
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-docmind} -d ${POSTGRES_DB:-docmind}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  docmind_pgdata:
