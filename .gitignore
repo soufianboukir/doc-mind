@@ -1,0 +1,7 @@
+.venv
+.env
+
+server/useful_commands.md
+
+server/__pycache__/
+*.py[cod]
