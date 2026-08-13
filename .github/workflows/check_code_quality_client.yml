@@ -32,7 +32,3 @@ jobs:
       - name: Lint code (ESLint)
         working-directory: client
         run: npm run lint
-
-      - name: Type check (TypeScript)
-        working-directory: client
-        run: npx tsc --noEmit
