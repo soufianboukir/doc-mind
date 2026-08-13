@@ -1,6 +1,5 @@
 .venv
 .env
-flickr30k
-data/processed
 
 __pycache__
+
