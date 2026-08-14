@@ -17,17 +17,14 @@ export const metadata: Metadata = {
   description: "A simple and intuitive AI-powered document analysis tool that helps you extract insights and make informed decisions from your documents.",
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+// app/layout.tsx
+import { AuthProvider } from "@/context/auth-context";
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        {children}
+      <body>
+        <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
   );
