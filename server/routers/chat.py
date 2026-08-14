@@ -4,7 +4,8 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from db.db import get_db
-from models import Chat, User
+from models.user import User
+from models.chat import Chat
 from schemas.chat import ChatCreate, ChatOut, ChatUpdate
 from routers.auth import get_current_user
 
