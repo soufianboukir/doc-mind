@@ -15,3 +15,39 @@ export interface ChatCreate {
 export interface ChatUpdate {
   title: string;
 }
+
+
+export type DocumentStatus =
+  | "pending"
+  | "processing"
+  | "completed"
+  | "failed";
+
+export interface Document {
+  id: string;
+  chat_id: string;
+  user_id: string;
+
+  filename: string;
+  storage_path: string;
+
+  mime_type: string | null;
+  file_size_bytes: number | null;
+
+  language: string | null;
+  page_count: number | null;
+
+  status: DocumentStatus;
+  error_message: string | null;
+
+  uploaded_at: string;
+  processed_at: string | null;
+}
+
+export interface ChatDocuments {
+  id: string;
+  title: string;
+  created_at: string;
+  updated_at: string;
+  documents: Document[];
+}
