@@ -1,13 +1,13 @@
-import * as React from 'react';
+import * as React from "react";
 
 function subscribe(callback: () => void) {
-  const mql = window.matchMedia('(max-width: 767px)');
-  mql.addEventListener('change', callback);
-  return () => mql.removeEventListener('change', callback);
+  const mql = window.matchMedia("(max-width: 767px)");
+  mql.addEventListener("change", callback);
+  return () => mql.removeEventListener("change", callback);
 }
 
 function getSnapshot() {
-  return window.matchMedia('(max-width: 767px)').matches;
+  return window.matchMedia("(max-width: 767px)").matches;
 }
 
 function getServerSnapshot() {
