@@ -44,12 +44,12 @@ export function LoginForm({
     setFormError(null);
     try {
       await login(values);
-      router.push("/dashboard");
+      router.push("/chat");
     } catch (error) {
       setFormError(
         error instanceof ApiError
           ? error.message
-          : "Something went wrong. Please try again."
+          : "Something went wrong. Please try again.",
       );
     }
   };
@@ -118,8 +118,8 @@ export function LoginForm({
         </CardContent>
       </Card>
       <FieldDescription className="px-6 text-center">
-        By clicking continue, you agree to our{" "}
-        <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>.
+        By clicking continue, you agree to our <a href="#">Terms of Service</a>{" "}
+        and <a href="#">Privacy Policy</a>.
       </FieldDescription>
     </div>
   );

@@ -2,10 +2,10 @@
 
 import {
   createContext,
-  useCallback,
   useContext,
   useEffect,
   useState,
+  useCallback,
   type ReactNode,
 } from "react";
 import { apiFetch } from "@/lib/api";
@@ -22,6 +22,7 @@ interface AuthContextValue {
   login: (payload: LoginPayload) => Promise<void>;
   register: (payload: RegisterPayload) => Promise<void>;
   logout: () => Promise<void>;
+  refetchUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -30,19 +31,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const loadUser = useCallback(async () => {
+  useEffect(() => {
+    let ignore = false;
+
+    apiFetch<User>("/api/v1/auth/me")
+      .then((currentUser) => {
+        if (!ignore) setUser(currentUser);
+      })
+      .catch(() => {
+        if (!ignore) setUser(null);
+      })
+      .finally(() => {
+        if (!ignore) setIsLoading(false);
+      });
+
+    return () => {
+      ignore = true;
+    };
+  }, []);
+
+  // Exposed separately so components can manually re-check the session
+  // (e.g. after a 401 elsewhere) without duplicating the effect above.
+  const refetchUser = useCallback(async () => {
     try {
       setUser(await apiFetch<User>("/api/v1/auth/me"));
     } catch {
       setUser(null);
-    } finally {
-      setIsLoading(false);
     }
   }, []);
-
-  useEffect(() => {
-    loadUser();
-  }, [loadUser]);
 
   const login = useCallback(async (payload: LoginPayload) => {
     const data = await apiFetch<TokenResponse>("/api/v1/auth/login", {
@@ -69,7 +85,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, register, logout }}>
+    <AuthContext.Provider
+      value={{ user, isLoading, login, register, logout, refetchUser }}
+    >
       {children}
     </AuthContext.Provider>
   );

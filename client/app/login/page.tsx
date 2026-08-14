@@ -1,7 +1,7 @@
 "use client";
 
 import { LoginForm } from "@/components/login-form";
-import { GalleryVerticalEndIcon } from "lucide-react";
+import { Sparkles } from "lucide-react";
 
 export default function LoginPage() {
   return (
@@ -9,9 +9,9 @@ export default function LoginPage() {
       <div className="flex w-full max-w-sm flex-col gap-6">
         <a href="#" className="flex items-center gap-2 self-center font-medium">
           <div className="flex size-6 items-center justify-center rounded-md bg-primary text-primary-foreground">
-            <GalleryVerticalEndIcon className="size-4" />
+            <Sparkles className="size-4" />
           </div>
-          Acme Inc.
+          DocMind.
         </a>
         <LoginForm />
       </div>

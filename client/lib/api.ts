@@ -34,12 +34,12 @@ async function parseErrorMessage(response: Response): Promise<string> {
 
 export async function apiFetch<T>(
   path: string,
-  options: RequestInit = {}
+  options: RequestInit = {},
 ): Promise<T> {
   if (!API_URL) {
     throw new ApiError(
       "The API URL isn't configured. Set NEXT_PUBLIC_API_URL in your .env file.",
-      0
+      0,
     );
   }
 
@@ -56,7 +56,7 @@ export async function apiFetch<T>(
   } catch {
     throw new ApiError(
       "Couldn't reach the server. Check your connection and try again.",
-      0
+      0,
     );
   }
 
