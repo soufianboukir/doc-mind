@@ -1,10 +1,9 @@
 "use client";
 
 import * as React from "react";
+import { useRouter } from "next/navigation";
 
-import { NavMain } from "@/components/nav-main";
-import { NavProjects } from "@/components/nav-projects";
-import { NavSecondary } from "@/components/nav-secondary";
+import { NavChats } from "@/components/nav-chats";
 import { NavUser } from "@/components/nav-user";
 import {
   Sidebar,
@@ -15,143 +14,31 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import {
-  TerminalSquareIcon,
-  BotIcon,
-  BookOpenIcon,
-  Settings2Icon,
-  LifeBuoyIcon,
-  SendIcon,
-  FrameIcon,
-  PieChartIcon,
-  MapIcon,
-  Sparkles,
-} from "lucide-react";
+import { Sparkles } from "lucide-react";
+import type { Chat } from "@/types/chat";
+import { apiFetch, ApiError } from "@/lib/api";
 
-const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
-  navMain: [
-    {
-      title: "Playground",
-      url: "#",
-      icon: <TerminalSquareIcon />,
-      isActive: true,
-      items: [
-        {
-          title: "History",
-          url: "#",
-        },
-        {
-          title: "Starred",
-          url: "#",
-        },
-        {
-          title: "Settings",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Models",
-      url: "#",
-      icon: <BotIcon />,
-      items: [
-        {
-          title: "Genesis",
-          url: "#",
-        },
-        {
-          title: "Explorer",
-          url: "#",
-        },
-        {
-          title: "Quantum",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Documentation",
-      url: "#",
-      icon: <BookOpenIcon />,
-      items: [
-        {
-          title: "Introduction",
-          url: "#",
-        },
-        {
-          title: "Get Started",
-          url: "#",
-        },
-        {
-          title: "Tutorials",
-          url: "#",
-        },
-        {
-          title: "Changelog",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Settings",
-      url: "#",
-      icon: <Settings2Icon />,
-      items: [
-        {
-          title: "General",
-          url: "#",
-        },
-        {
-          title: "Team",
-          url: "#",
-        },
-        {
-          title: "Billing",
-          url: "#",
-        },
-        {
-          title: "Limits",
-          url: "#",
-        },
-      ],
-    },
-  ],
-  navSecondary: [
-    {
-      title: "Support",
-      url: "#",
-      icon: <LifeBuoyIcon />,
-    },
-    {
-      title: "Feedback",
-      url: "#",
-      icon: <SendIcon />,
-    },
-  ],
-  projects: [
-    {
-      name: "Design Engineering",
-      url: "#",
-      icon: <FrameIcon />,
-    },
-    {
-      name: "Sales & Marketing",
-      url: "#",
-      icon: <PieChartIcon />,
-    },
-    {
-      name: "Travel",
-      url: "#",
-      icon: <MapIcon />,
-    },
-  ],
-};
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const router = useRouter();
+
+  const [chats, setChats] = React.useState<Chat[]>([]);
+  const [activeChatId, setActiveChatId] = React.useState<string | undefined>();
+  const [isLoadingChats, setIsLoadingChats] = React.useState(true);
+
+  React.useEffect(() => {
+    async function loadChats() {
+      try {
+        const data = await apiFetch<Chat[]>("/api/v1/chats");
+        setChats(data);
+      } catch (err) {
+        console.error(err instanceof ApiError ? err.message : err);
+      } finally {
+        setIsLoadingChats(false);
+      }
+    }
+    loadChats();
+  }, []);
+
   return (
     <Sidebar
       className="top-(--header-height) h-[calc(100svh-var(--header-height))]!"
@@ -172,11 +59,62 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
+
       <SidebarContent>
-        <NavMain items={data.navMain} />
-        <NavProjects projects={data.projects} />
-        <NavSecondary items={data.navSecondary} className="mt-auto" />
+        <NavChats
+          chats={chats}
+          activeChatId={activeChatId}
+          isLoading={isLoadingChats}
+          onSelectChat={(chat) => {
+            setActiveChatId(chat.id);
+            router.push(`/chat/${chat.id}`);
+          }}
+          onAddChat={async (title: string) => {
+            try {
+              const chat = await apiFetch<Chat>("/api/v1/chats", {
+                method: "POST",
+                body: JSON.stringify({ title }),
+              });
+              setChats((prev) => [chat, ...prev]);
+              setActiveChatId(chat.id);
+              router.push(`/chat/${chat.id}`);
+            } catch (err) {
+              console.error(err instanceof ApiError ? err.message : err);
+              throw err; // keeps the dialog open on failure
+            }
+          }}
+          onRenameChat={async (chat: Chat, newTitle: string) => {
+            try {
+              await apiFetch(`/api/v1/chats/${chat.id}`, {
+                method: "PATCH",
+                body: JSON.stringify({ title: newTitle }),
+              });
+              setChats((prev) =>
+                prev.map((c) => (c.id === chat.id ? { ...c, title: newTitle } : c))
+              );
+            } catch (err) {
+              console.error(err instanceof ApiError ? err.message : err);
+              throw err;
+            }
+          }}
+          onDeleteChat={async (chat: Chat) => {
+            try {
+              await apiFetch(`/api/v1/chats/${chat.id}`, {
+                method: "DELETE",
+              });
+              setChats((prev) => prev.filter((c) => c.id !== chat.id));
+              if (activeChatId === chat.id) {
+                setActiveChatId(undefined);
+                router.push("/");
+              }
+            } catch (err) {
+              console.error(err instanceof ApiError ? err.message : err);
+              throw err;
+            }
+          }}
+        />
       </SidebarContent>
+
       <SidebarFooter>
         <NavUser />
       </SidebarFooter>
