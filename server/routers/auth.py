@@ -6,8 +6,8 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from db.db import get_db
-from models import User
-from schemas import (
+from models.user import User
+from schemas.auth import (
     LoginRequest,
     TokenResponse,
     UserCreate,
