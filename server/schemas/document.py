@@ -24,6 +24,14 @@ class DocumentOut(BaseModel):
     uploaded_at: datetime
     processed_at: datetime | None
 
-    model_config = ConfigDict(
-        from_attributes=True
-    )
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ChatDocumentsOut(BaseModel):
+    id: uuid.UUID
+    title: str
+    created_at: datetime
+    updated_at: datetime
+    documents: list[DocumentOut]
+
+    model_config = ConfigDict(from_attributes=True)

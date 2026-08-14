@@ -11,9 +11,11 @@ from fastapi import (
 from sqlalchemy.orm import Session
 
 from db.db import get_db
-from models import Chat, Document, DocumentStatus, User
+from models.chat import Chat
+from models.document import Document, DocumentStatus
+from models.user import User
 from routers.auth import get_current_user
-from schemas.document import DocumentOut
+from schemas.document import DocumentOut, ChatDocumentsOut
 from services.cloudinary_service import (
     delete_document as cloudinary_delete,
     upload_document,
@@ -28,7 +30,7 @@ router = APIRouter(
 
 @router.get(
     "/{chat_id}/documents",
-    response_model=list[DocumentOut],
+    response_model=ChatDocumentsOut,
 )
 def get_documents(
     chat_id: uuid.UUID,
@@ -60,7 +62,13 @@ def get_documents(
         .all()
     )
 
-    return documents
+    return ChatDocumentsOut(
+        id=chat.id,
+        title=chat.title,
+        created_at=chat.created_at,
+        updated_at=chat.updated_at,
+        documents=documents,
+    )
 
 
 @router.post(
