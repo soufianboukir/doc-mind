@@ -193,3 +193,68 @@ def delete_document(
     db.commit()
 
     return None
+
+
+
+import uuid
+
+import cloudinary
+from fastapi import Depends, HTTPException, status
+from sqlalchemy.orm import Session
+
+from db.db import get_db
+from models.chat import Chat
+from models.document import Document
+from models.user import User
+from routers.auth import get_current_user
+
+
+@router.get(
+    "/{chat_id}/documents/{document_id}/url",
+)
+def get_document_url(
+    chat_id: uuid.UUID,
+    document_id: uuid.UUID,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    chat = (
+        db.query(Chat)
+        .filter(
+            Chat.id == chat_id,
+            Chat.user_id == current_user.id,
+        )
+        .first()
+    )
+
+    if chat is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Chat not found.",
+        )
+
+    document = (
+        db.query(Document)
+        .filter(
+            Document.id == document_id,
+            Document.chat_id == chat_id,
+            Document.user_id == current_user.id,
+        )
+        .first()
+    )
+
+    if document is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Document not found.",
+        )
+
+    document_url = cloudinary.utils.cloudinary_url(
+        document.storage_path,
+        resource_type="raw",
+        secure=True,
+    )[0]
+
+    return {
+        "url": document_url,
+    }
