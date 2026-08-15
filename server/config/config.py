@@ -17,6 +17,8 @@ class Settings(BaseSettings):
 
     cohere_api_key: str
 
+    frontend_url: str
+
     cloudinary_cloud_name: str
     cloudinary_api_key: str
     cloudinary_api_secret: str

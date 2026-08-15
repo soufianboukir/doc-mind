@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-
+from config.config import settings
 from routers.auth import router as auth_router
 from fastapi.middleware.cors import CORSMiddleware
 from routers.chat import router as chats_router
@@ -9,7 +9,7 @@ app = FastAPI(title="DocMind API", version="0.1.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # your frontend's exact origin(s)
+    allow_origins=[settings.frontend_url],  # your frontend's exact origin(s)
     allow_credentials=True,  # required for the httpOnly cookie to be sent/received
     allow_methods=["*"],
     allow_headers=["*"],
