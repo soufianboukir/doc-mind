@@ -2,11 +2,32 @@
 name = "docmind-server"
 version = "0.1.0"
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "fastapi==0.141.1",
+    "uvicorn[standard]==0.52.2",
+    "sqlalchemy==2.0.52",
+    "psycopg2-binary==2.9.12",
+    "pgvector==0.5.0",
+    "pydantic==2.13.4",
+    "pydantic-settings==2.15.0",
+    "python-multipart==0.0.32",
+    "python-jose==3.5.0",
+    "passlib==1.7.4",
+    "cryptography==50.0.0",
+    "python-dotenv==1.2.2",
+    "cloudinary==1.45.0",
+    "cohere",
+    "pypdf==6.16.1",
+    "requests==2.34.2",
+    "email-validator==2.3.0",
+]
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+bypass-selection = true
 
 [tool.ruff]
 target-version = "py312"
