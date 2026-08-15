@@ -32,6 +32,7 @@ export function DocumentList({ documents, onDelete }: DocumentListProps) {
     <div className="space-y-3">
       {documents.map((document) => (
         <DocumentListItem
+          chatId={document.chat_id}
           key={document.id}
           document={document}
           onDelete={onDelete}
