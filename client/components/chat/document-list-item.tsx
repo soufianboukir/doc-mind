@@ -4,12 +4,7 @@ import {
   AlertCircle,
   CheckCircle2,
   Clock3,
-  File,
-  FileArchive,
-  FileCode2,
-  FileImage,
   FilesIcon,
-  FileText,
   Loader2,
   MoreHorizontal,
   Trash2,
@@ -28,34 +23,6 @@ import {
 interface DocumentListItemProps {
   document: Document;
   onDelete?: (documentId: string) => void;
-}
-
-function getFileIcon(mimeType: string | null) {
-  if (!mimeType) {
-    return File;
-  }
-
-  if (mimeType === "application/pdf") {
-    return FileText;
-  }
-
-  if (mimeType.startsWith("image/")) {
-    return FileImage;
-  }
-
-  if (mimeType.includes("zip") || mimeType.includes("compressed")) {
-    return FileArchive;
-  }
-
-  if (
-    mimeType.includes("javascript") ||
-    mimeType.includes("json") ||
-    mimeType.includes("python")
-  ) {
-    return FileCode2;
-  }
-
-  return File;
 }
 
 function formatFileSize(bytes: number | null) {
@@ -110,7 +77,6 @@ export function DocumentListItem({
   document,
   onDelete,
 }: DocumentListItemProps) {
-  const FileIcon = getFileIcon(document.mime_type);
   const status = getStatus(document.status);
   const StatusIcon = status.icon;
 

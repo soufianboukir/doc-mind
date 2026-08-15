@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  FileText,
-  MessageSquarePlus,
-  Sparkles,
-} from "lucide-react";
-
+import { FileText, MessageSquarePlus, Sparkles } from "lucide-react";
 
 export default function ChatPage() {
   return (

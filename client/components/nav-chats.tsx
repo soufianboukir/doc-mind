@@ -188,11 +188,11 @@ export function NavChats({
                       <span>Edit chat</span>
                     </DropdownMenuItem>
 
-                    <DropdownMenuItem
-                      className="gap-2 cursor-pointer"
-                    >
+                    <DropdownMenuItem className="gap-2 cursor-pointer">
                       <Upload className="size-3.5" />
-                      <Link href={`chat/${chat.id}/info`}>Upload documents</Link>
+                      <Link href={`/chat/${chat.id}/info`}>
+                        Upload documents
+                      </Link>
                     </DropdownMenuItem>
 
                     <DropdownMenuSeparator />
@@ -203,8 +203,6 @@ export function NavChats({
                       <Trash2 className="size-3.5" />
                       <span>Delete chat</span>
                     </DropdownMenuItem>
-
-                    
                   </DropdownMenuContent>
                 </DropdownMenu>
               </SidebarMenuItem>

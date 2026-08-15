@@ -1,13 +1,13 @@
 "use client";
 
 import { use, useCallback, useEffect, useState } from "react";
-import { ArrowLeft, FileStack, Loader2 } from "lucide-react";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { DocumentList } from "@/components/chat/document-list";
-import { UploadDocuments } from "@/components/chat/upload-documents";
+import { DocumentUpload } from "@/components/chat/document-upload";
 import { getChatDocuments } from "@/lib/api/chats";
 import { ChatDocuments } from "@/types/chat";
 
@@ -44,8 +44,37 @@ export default function ChatInfoPage({ params }: ChatInfoPageProps) {
   }, [id]);
 
   useEffect(() => {
-    loadDocuments();
-  }, [loadDocuments]);
+    let cancelled = false;
+
+    async function fetchInitialDocuments() {
+      try {
+        const result = await getChatDocuments(id);
+
+        if (cancelled) return;
+
+        setData(result);
+        setError(null);
+      } catch (error) {
+        if (cancelled) return;
+
+        console.error(error);
+
+        setError(
+          error instanceof Error ? error.message : "Something went wrong",
+        );
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    }
+
+    void fetchInitialDocuments();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [id]);
 
   async function handleDelete(documentId: string) {
     try {
@@ -98,8 +127,7 @@ export default function ChatInfoPage({ params }: ChatInfoPageProps) {
 
   return (
     <main className="min-h-screen">
-      <div className="mx-auto px-6 py-10">
-
+      <div className="mx-auto px-6 py-5">
         <div className="flex items-start justify-between gap-6">
           <div className="flex items-start gap-4">
             <Button variant="ghost" size="icon">
@@ -118,33 +146,21 @@ export default function ChatInfoPage({ params }: ChatInfoPageProps) {
 
               <p className="mt-1 text-sm text-muted-foreground">
                 {data.documents.length}{" "}
-                {data.documents.length === 1 ? "document" : "documents"}
+                {data.documents.length === 1 ? "document " : "documents "}-
+                Upload and manage documents for this chat.
               </p>
             </div>
           </div>
-
-          <UploadDocuments chatId={id} onUploaded={loadDocuments} />
         </div>
 
         <Separator className="my-8" />
 
+        <section className="w-full">
+          <DocumentUpload chatId={id} onUploaded={loadDocuments} />
 
-        <section>
-          <div className="mb-5 flex items-center gap-3">
-            <div className="flex size-9 items-center justify-center rounded-lg bg-muted">
-              <FileStack className="size-4" />
-            </div>
-
-            <div>
-              <h2 className="font-semibold">Documents</h2>
-
-              <p className="text-sm text-muted-foreground">
-                Documents attached to this chat
-              </p>
-            </div>
+          <div className="mt-6">
+            <DocumentList documents={data.documents} onDelete={handleDelete} />
           </div>
-
-          <DocumentList documents={data.documents} onDelete={handleDelete} />
         </section>
       </div>
     </main>

@@ -17,11 +17,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { useAuth } from "@/context/auth-context";
-import {
-  ChevronsUpDownIcon,
-  SparklesIcon,
-  LogOutIcon,
-} from "lucide-react";
+import { ChevronsUpDownIcon, SparklesIcon, LogOutIcon } from "lucide-react";
 
 export function NavUser() {
   const { user } = useAuth();
