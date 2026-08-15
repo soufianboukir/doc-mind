@@ -10,15 +10,10 @@ interface UploadDocumentsProps {
   onUploaded?: () => void;
 }
 
-export function UploadDocuments({
-  chatId,
-  onUploaded,
-}: UploadDocumentsProps) {
+export function UploadDocuments({ chatId, onUploaded }: UploadDocumentsProps) {
   const [uploading, setUploading] = useState(false);
 
-  async function handleFiles(
-    event: ChangeEvent<HTMLInputElement>
-  ) {
+  async function handleFiles(event: ChangeEvent<HTMLInputElement>) {
     const files = event.target.files;
 
     if (!files || files.length === 0) {
@@ -40,7 +35,7 @@ export function UploadDocuments({
           method: "POST",
           credentials: "include",
           body: formData,
-        }
+        },
       );
 
       if (!response.ok) {
@@ -68,19 +63,11 @@ export function UploadDocuments({
         accept=".pdf,.doc,.docx,.txt,.md"
       />
 
-      <Button
-        disabled={uploading}
-      >
+      <Button disabled={uploading}>
         <label htmlFor="document-upload">
-          {uploading ? (
-            <Loader2 className="animate-spin" />
-          ) : (
-            <Upload />
-          )}
+          {uploading ? <Loader2 className="animate-spin" /> : <Upload />}
 
-          {uploading
-            ? "Uploading..."
-            : "Upload documents"}
+          {uploading ? "Uploading..." : "Upload documents"}
         </label>
       </Button>
     </div>

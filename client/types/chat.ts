@@ -1,9 +1,9 @@
 export interface Chat {
-  id: string;          // UUID
-  user_id: string;     // UUID
+  id: string; // UUID
+  user_id: string; // UUID
   title: string;
-  created_at: string;  // ISO 8601 timestamp
-  updated_at: string;  // ISO 8601 timestamp
+  created_at: string; // ISO 8601 timestamp
+  updated_at: string; // ISO 8601 timestamp
 }
 
 // For POST /api/v1/chats
@@ -16,12 +16,7 @@ export interface ChatUpdate {
   title: string;
 }
 
-
-export type DocumentStatus =
-  | "pending"
-  | "processing"
-  | "completed"
-  | "failed";
+export type DocumentStatus = "pending" | "processing" | "completed" | "failed";
 
 export interface Document {
   id: string;

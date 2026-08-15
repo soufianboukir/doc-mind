@@ -45,8 +45,10 @@ import {
   Trash2,
   Loader2,
   Plus,
+  Upload,
 } from "lucide-react";
 import type { Chat } from "@/types/chat";
+import Link from "next/link";
 
 interface NavChatsProps {
   chats: Chat[];
@@ -154,11 +156,11 @@ export function NavChats({
         ) : (
           <SidebarMenu>
             {chats.map((chat) => (
-              <SidebarMenuItem key={chat.id} className="group/chat">
+              <SidebarMenuItem key={chat.id} className="-mb-5">
                 <SidebarMenuButton
                   isActive={chat.id === activeChatId}
                   onClick={() => onSelectChat?.(chat)}
-                  className="py-6 px-3 cursor-pointer"
+                  className="py-5 px-3 cursor-pointer"
                 >
                   <span className="truncate">{chat.title}</span>
                 </SidebarMenuButton>
@@ -167,25 +169,42 @@ export function NavChats({
                   <DropdownMenuTrigger>
                     <SidebarMenuAction
                       showOnHover
-                      className="data-[state=open]:bg-sidebar-accent data-[state=open]:opacity-100 mt-2"
+                      className="data-[state=open]:bg-sidebar-accent data-[state=open]:opacity-100 mt-1"
                     >
                       <MoreHorizontal />
                       <span className="sr-only">More</span>
                     </SidebarMenuAction>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent side="right" align="start" className="w-40">
-                    <DropdownMenuItem onClick={() => openRename(chat)} className="gap-2">
+                  <DropdownMenuContent
+                    side="right"
+                    align="start"
+                    className="w-50"
+                  >
+                    <DropdownMenuItem
+                      onClick={() => openRename(chat)}
+                      className="gap-2 cursor-pointer"
+                    >
                       <Pencil className="size-3.5" />
                       <span>Edit chat</span>
                     </DropdownMenuItem>
+
+                    <DropdownMenuItem
+                      className="gap-2 cursor-pointer"
+                    >
+                      <Upload className="size-3.5" />
+                      <Link href={`chat/${chat.id}/info`}>Upload documents</Link>
+                    </DropdownMenuItem>
+
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
                       onClick={() => setDeletingChat(chat)}
-                      className="gap-2 text-destructive focus:text-destructive"
+                      className="gap-2 text-destructive focus:text-destructive cursor-pointer"
                     >
                       <Trash2 className="size-3.5" />
                       <span>Delete chat</span>
                     </DropdownMenuItem>
+
+                    
                   </DropdownMenuContent>
                 </DropdownMenu>
               </SidebarMenuItem>
@@ -215,14 +234,21 @@ export function NavChats({
               Cancel
             </Button>
             <Button onClick={confirmAdd} disabled={isAdding}>
-              {isAdding ? <Loader2 className="size-3.5 animate-spin" /> : "Create"}
+              {isAdding ? (
+                <Loader2 className="size-3.5 animate-spin" />
+              ) : (
+                "Create"
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* Rename dialog */}
-      <Dialog open={!!editingChat} onOpenChange={(open) => !open && setEditingChat(null)}>
+      <Dialog
+        open={!!editingChat}
+        onOpenChange={(open) => !open && setEditingChat(null)}
+      >
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>
             <DialogTitle>Rename chat</DialogTitle>
@@ -241,23 +267,33 @@ export function NavChats({
             <Button variant="outline" onClick={() => setEditingChat(null)}>
               Cancel
             </Button>
-            <Button onClick={confirmRename} disabled={isRenaming || !renameValue.trim()}>
-              {isRenaming ? <Loader2 className="size-3.5 animate-spin" /> : "Save"}
+            <Button
+              onClick={confirmRename}
+              disabled={isRenaming || !renameValue.trim()}
+            >
+              {isRenaming ? (
+                <Loader2 className="size-3.5 animate-spin" />
+              ) : (
+                "Save"
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* Delete confirmation */}
-      <AlertDialog open={!!deletingChat} onOpenChange={(open) => !open && setDeletingChat(null)}>
+      <AlertDialog
+        open={!!deletingChat}
+        onOpenChange={(open) => !open && setDeletingChat(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
               Delete <b>{deletingChat?.title}</b>?
             </AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete this chat and its messages. This action can&apos;t be
-              undone.
+              This will permanently delete this chat and its messages. This
+              action can&apos;t be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -270,7 +306,11 @@ export function NavChats({
               disabled={isDeleting}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {isDeleting ? <Loader2 className="size-3.5 animate-spin" /> : "Delete"}
+              {isDeleting ? (
+                <Loader2 className="size-3.5 animate-spin" />
+              ) : (
+                "Delete"
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

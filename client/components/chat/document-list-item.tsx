@@ -43,10 +43,7 @@ function getFileIcon(mimeType: string | null) {
     return FileImage;
   }
 
-  if (
-    mimeType.includes("zip") ||
-    mimeType.includes("compressed")
-  ) {
+  if (mimeType.includes("zip") || mimeType.includes("compressed")) {
     return FileArchive;
   }
 
@@ -124,9 +121,7 @@ export function DocumentListItem({
       </div>
 
       <div className="min-w-0 flex-1">
-        <p className="truncate font-medium">
-          {document.filename}
-        </p>
+        <p className="truncate font-medium">{document.filename}</p>
 
         <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
           <span>{formatFileSize(document.file_size_bytes)}</span>
@@ -139,9 +134,7 @@ export function DocumentListItem({
           )}
 
           {document.language && (
-            <span className="uppercase">
-              {document.language}
-            </span>
+            <span className="uppercase">{document.language}</span>
           )}
         </div>
       </div>
@@ -151,9 +144,7 @@ export function DocumentListItem({
       >
         <StatusIcon
           className={`size-4 ${
-            document.status === "processing"
-              ? "animate-spin"
-              : ""
+            document.status === "processing" ? "animate-spin" : ""
           }`}
         />
 
@@ -162,15 +153,9 @@ export function DocumentListItem({
 
       <DropdownMenu>
         <DropdownMenuTrigger>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="shrink-0"
-          >
+          <Button variant="ghost" size="icon" className="shrink-0">
             <MoreHorizontal className="size-4" />
-            <span className="sr-only">
-              Document actions
-            </span>
+            <span className="sr-only">Document actions</span>
           </Button>
         </DropdownMenuTrigger>
 

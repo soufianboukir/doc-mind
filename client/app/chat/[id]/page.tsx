@@ -1,9 +1,7 @@
-import React from 'react'
-
-export default function page() {
+export default function ChatPage() {
   return (
     <div>
-      chat goas here
+      <h1>Chat</h1>
     </div>
-  )
+  );
 }

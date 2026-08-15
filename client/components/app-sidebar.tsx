@@ -90,7 +90,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 body: JSON.stringify({ title: newTitle }),
               });
               setChats((prev) =>
-                prev.map((c) => (c.id === chat.id ? { ...c, title: newTitle } : c))
+                prev.map((c) =>
+                  c.id === chat.id ? { ...c, title: newTitle } : c,
+                ),
               );
             } catch (err) {
               console.error(err instanceof ApiError ? err.message : err);

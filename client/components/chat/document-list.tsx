@@ -11,10 +11,7 @@ interface DocumentListProps {
   onDelete?: (documentId: string) => void;
 }
 
-export function DocumentList({
-  documents,
-  onDelete,
-}: DocumentListProps) {
+export function DocumentList({ documents, onDelete }: DocumentListProps) {
   if (documents.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center rounded-xl border border-dashed py-16 text-center">
@@ -22,13 +19,10 @@ export function DocumentList({
           <FileStack className="size-5 text-muted-foreground" />
         </div>
 
-        <h3 className="font-semibold">
-          No documents yet
-        </h3>
+        <h3 className="font-semibold">No documents yet</h3>
 
         <p className="mt-1 max-w-sm text-sm text-muted-foreground">
-          Upload documents to start building the knowledge
-          base for this chat.
+          Upload documents to start building the knowledge base for this chat.
         </p>
       </div>
     );

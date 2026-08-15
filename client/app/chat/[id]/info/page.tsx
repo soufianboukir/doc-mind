@@ -1,11 +1,7 @@
 "use client";
 
 import { use, useCallback, useEffect, useState } from "react";
-import {
-  ArrowLeft,
-  FileStack,
-  Loader2,
-} from "lucide-react";
+import { ArrowLeft, FileStack, Loader2 } from "lucide-react";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
@@ -21,19 +17,14 @@ interface ChatInfoPageProps {
   }>;
 }
 
-export default function ChatInfoPage({
-  params,
-}: ChatInfoPageProps) {
+export default function ChatInfoPage({ params }: ChatInfoPageProps) {
   const { id } = use(params);
 
-  const [data, setData] =
-    useState<ChatDocuments | null>(null);
+  const [data, setData] = useState<ChatDocuments | null>(null);
 
   const [loading, setLoading] = useState(true);
 
-  const [error, setError] = useState<string | null>(
-    null
-  );
+  const [error, setError] = useState<string | null>(null);
 
   const loadDocuments = useCallback(async () => {
     try {
@@ -46,11 +37,7 @@ export default function ChatInfoPage({
     } catch (error) {
       console.error(error);
 
-      setError(
-        error instanceof Error
-          ? error.message
-          : "Something went wrong"
-      );
+      setError(error instanceof Error ? error.message : "Something went wrong");
     } finally {
       setLoading(false);
     }
@@ -67,7 +54,7 @@ export default function ChatInfoPage({
         {
           method: "DELETE",
           credentials: "include",
-        }
+        },
       );
 
       if (!response.ok) {
@@ -90,21 +77,15 @@ export default function ChatInfoPage({
 
   if (error || !data) {
     return (
-      <main className="mx-auto flex min-h-screen max-w-3xl items-center justify-center px-6">
+      <main className="mx-auto flex min-h-screen items-center justify-center px-6">
         <div className="text-center">
-          <h1 className="text-xl font-semibold">
-            Unable to load chat
-          </h1>
+          <h1 className="text-xl font-semibold">Unable to load chat</h1>
 
           <p className="mt-2 text-sm text-muted-foreground">
             {error ?? "Something went wrong."}
           </p>
 
-          <Button
-            className="mt-6"
-            variant="outline"
-            asChild
-          >
+          <Button className="mt-6" variant="outline">
             <Link href={`/chat/${id}`}>
               <ArrowLeft />
               Back to chat
@@ -117,28 +98,19 @@ export default function ChatInfoPage({
 
   return (
     <main className="min-h-screen">
-      <div className="mx-auto max-w-4xl px-6 py-10">
-        {/* Header */}
+      <div className="mx-auto px-6 py-10">
 
         <div className="flex items-start justify-between gap-6">
           <div className="flex items-start gap-4">
-            <Button
-              variant="ghost"
-              size="icon"
-              asChild
-            >
+            <Button variant="ghost" size="icon">
               <Link href={`/chat/${id}`}>
                 <ArrowLeft />
-                <span className="sr-only">
-                  Back to chat
-                </span>
+                <span className="sr-only">Back to chat</span>
               </Link>
             </Button>
 
             <div>
-              <p className="text-sm text-muted-foreground">
-                Chat information
-              </p>
+              <p className="text-sm text-muted-foreground">Chat information</p>
 
               <h1 className="mt-1 text-2xl font-semibold tracking-tight">
                 {data.title}
@@ -146,22 +118,16 @@ export default function ChatInfoPage({
 
               <p className="mt-1 text-sm text-muted-foreground">
                 {data.documents.length}{" "}
-                {data.documents.length === 1
-                  ? "document"
-                  : "documents"}
+                {data.documents.length === 1 ? "document" : "documents"}
               </p>
             </div>
           </div>
 
-          <UploadDocuments
-            chatId={id}
-            onUploaded={loadDocuments}
-          />
+          <UploadDocuments chatId={id} onUploaded={loadDocuments} />
         </div>
 
         <Separator className="my-8" />
 
-        {/* Documents */}
 
         <section>
           <div className="mb-5 flex items-center gap-3">
@@ -170,9 +136,7 @@ export default function ChatInfoPage({
             </div>
 
             <div>
-              <h2 className="font-semibold">
-                Documents
-              </h2>
+              <h2 className="font-semibold">Documents</h2>
 
               <p className="text-sm text-muted-foreground">
                 Documents attached to this chat
@@ -180,10 +144,7 @@ export default function ChatInfoPage({
             </div>
           </div>
 
-          <DocumentList
-            documents={data.documents}
-            onDelete={handleDelete}
-          />
+          <DocumentList documents={data.documents} onDelete={handleDelete} />
         </section>
       </div>
     </main>
