@@ -74,7 +74,7 @@ CREATE TRIGGER trg_chats_updated_at
 -- CREATE TYPE has no native IF NOT EXISTS, so guard it manually to
 -- keep the whole script safe to re-run against an already-initialized DB.
 DO $$ BEGIN
-    CREATE TYPE document_status AS ENUM ('pending', 'processing', 'ready', 'failed');
+    CREATE TYPE document_status AS ENUM ('pending', 'processing', 'completed', 'failed');
 EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
 

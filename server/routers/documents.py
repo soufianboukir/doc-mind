@@ -21,6 +21,10 @@ from services.cloudinary_service import (
     upload_document,
 )
 
+from services.document_service import process_document_background
+
+from fastapi import BackgroundTasks
+
 router = APIRouter(
     prefix="/api/v1/chats",
     tags=["documents"],
@@ -70,6 +74,7 @@ def get_documents(
     )
 
 
+
 @router.post(
     "/{chat_id}/documents",
     response_model=list[DocumentOut],
@@ -77,10 +82,14 @@ def get_documents(
 )
 async def upload_documents(
     chat_id: uuid.UUID,
+    background_tasks: BackgroundTasks,
     files: list[UploadFile] = File(...),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    # ---------------------------------------------------------
+    # 1. Verify that the chat belongs to the authenticated user
+    # ---------------------------------------------------------
     chat = (
         db.query(Chat)
         .filter(
@@ -96,20 +105,25 @@ async def upload_documents(
             detail="Chat not found.",
         )
 
+    # ---------------------------------------------------------
+    # 2. Validate files
+    # ---------------------------------------------------------
     if not files:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="No files were provided.",
         )
 
-    documents = []
+    documents: list[Document] = []
 
+    # ---------------------------------------------------------
+    # 3. Upload each file to Cloudinary
+    # ---------------------------------------------------------
     for file in files:
-
         if not file.filename:
             continue
 
-        folder = f"docmind/" f"{current_user.id}/" f"{chat_id}"
+        folder = f"docmind/{current_user.id}/{chat_id}"
 
         try:
             result = upload_document(
@@ -122,7 +136,7 @@ async def upload_documents(
                 chat_id=chat_id,
                 user_id=current_user.id,
                 filename=file.filename,
-                # Store Cloudinary public_id here
+                # Cloudinary public_id
                 storage_path=result["public_id"],
                 mime_type=file.content_type,
                 file_size_bytes=None,
@@ -140,18 +154,36 @@ async def upload_documents(
                 detail=f"Failed to upload {file.filename}.",
             ) from None
 
+    # ---------------------------------------------------------
+    # 4. Make sure at least one valid file was uploaded
+    # ---------------------------------------------------------
     if not documents:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="No valid files were provided.",
         )
 
+    # ---------------------------------------------------------
+    # 5. Save documents
+    # ---------------------------------------------------------
     db.commit()
 
+    # ---------------------------------------------------------
+    # 6. Refresh and schedule processing
+    # ---------------------------------------------------------
     for document in documents:
         db.refresh(document)
 
+        background_tasks.add_task(
+            process_document_background,
+            document.id,
+        )
+
+    # ---------------------------------------------------------
+    # 7. Return immediately
+    # ---------------------------------------------------------
     return documents
+
 
 
 @router.delete(
