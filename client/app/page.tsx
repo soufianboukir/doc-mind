@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import { useState } from "react";
 import { ArrowRight, Menu, X } from "lucide-react";
@@ -170,9 +170,8 @@ export default function HeroSection() {
             className="mb-5 max-w-sm text-sm leading-relaxed text-white/60 sm:mb-6 sm:max-w-lg sm:text-base md:text-lg"
             style={{ animation: "fadeSlideUp 0.8s ease 0.7s both" }}
           >
-            DocMind reads your transcripts, program requirements, and essays
-            — then answers your questions with the exact source cited, every
-            time.
+            DocMind reads your transcripts, program requirements, and essays —
+            then answers your questions with the exact source cited, every time.
           </p>
           <button
             className="inline-flex items-center gap-2 rounded-lg bg-white px-5 py-2.5 text-sm font-medium text-black transition-transform hover:scale-105 sm:px-6 sm:py-3"
