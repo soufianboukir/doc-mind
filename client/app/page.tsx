@@ -9,16 +9,35 @@ export default function HeroSection() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <div className="relative h-screen w-full overflow-hidden bg-black font-geist">
-      {/* Background video — no z-index, sits behind everything by DOM order */}
+    <div className="relative h-screen w-full overflow-hidden bg-black font-sans">
+      {/* Keyframes for the load-in sequence — these were referenced via
+          inline `animation` below but never defined, so nothing was
+          actually animating. */}
+      <style jsx>{`
+        @keyframes fadeSlideUp {
+          from {
+            opacity: 0;
+            transform: translateY(16px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+      `}</style>
+
+      {/* Background video */}
       <video
         autoPlay
         muted
         loop
         playsInline
-        className="absolute h-full w-full object-cover object-[70%_center]"
+        className="absolute inset-0 h-full w-full object-cover object-[70%_center]"
         src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260622_204221_5339e40b-e73d-4ab0-9c65-79c18c66fd50.mp4"
       />
+
+      {/* Scrim so white text/nav stays legible over any frame of the video */}
+      <div className="absolute inset-0 z-[5] bg-gradient-to-b from-black/60 via-black/20 to-black/70" />
 
       {/* Navbar */}
       <nav className="relative z-30 flex items-center justify-between px-6 py-5 md:px-12 lg:px-16">
@@ -39,10 +58,21 @@ export default function HeroSection() {
           </div>
         </div>
 
-        {/* Desktop CTA */}
-        <button className="hidden rounded-lg bg-white px-5 py-2 text-sm font-medium text-black transition-transform hover:scale-105 md:inline-flex">
-          Let&apos;s Talk
-        </button>
+        {/* Desktop right-side actions */}
+        <div className="hidden items-center gap-3 md:flex">
+          <a
+            href="/login"
+            className="rounded-lg px-4 py-2 text-sm font-medium text-white/85 transition-colors hover:text-white"
+          >
+            Log in
+          </a>
+          <a
+            href="/signup"
+            className="inline-flex items-center rounded-lg bg-white px-5 py-2 text-sm font-medium text-black transition-transform hover:scale-105"
+          >
+            Sign up
+          </a>
+        </div>
 
         {/* Mobile hamburger */}
         <button
@@ -92,12 +122,23 @@ export default function HeroSection() {
               {link}
             </a>
           ))}
-          <button
-            onClick={() => setMobileMenuOpen(false)}
-            className="mt-6 w-fit rounded-full bg-white px-8 py-3.5 text-base font-medium text-black transition-transform hover:scale-105"
-          >
-            Let&apos;s Talk
-          </button>
+
+          <div className="mt-6 flex items-center gap-4">
+            <a
+              href="/login"
+              onClick={() => setMobileMenuOpen(false)}
+              className="w-fit rounded-full px-6 py-3 text-base font-medium text-white/85 hover:text-white"
+            >
+              Log in
+            </a>
+            <a
+              href="/signup"
+              onClick={() => setMobileMenuOpen(false)}
+              className="w-fit rounded-full bg-white px-8 py-3.5 text-base font-medium text-black transition-transform hover:scale-105"
+            >
+              Sign up
+            </a>
+          </div>
         </div>
       </div>
 
