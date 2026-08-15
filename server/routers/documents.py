@@ -21,7 +21,6 @@ from services.cloudinary_service import (
     upload_document,
 )
 
-
 router = APIRouter(
     prefix="/api/v1/chats",
     tags=["documents"],
@@ -110,11 +109,7 @@ async def upload_documents(
         if not file.filename:
             continue
 
-        folder = (
-            f"docmind/"
-            f"{current_user.id}/"
-            f"{chat_id}"
-        )
+        folder = f"docmind/" f"{current_user.id}/" f"{chat_id}"
 
         try:
             result = upload_document(
@@ -127,10 +122,8 @@ async def upload_documents(
                 chat_id=chat_id,
                 user_id=current_user.id,
                 filename=file.filename,
-
                 # Store Cloudinary public_id here
                 storage_path=result["public_id"],
-
                 mime_type=file.content_type,
                 file_size_bytes=None,
                 status=DocumentStatus.PENDING,
@@ -188,9 +181,7 @@ def delete_document(
         )
 
     try:
-        cloudinary_delete(
-            document.storage_path
-        )
+        cloudinary_delete(document.storage_path)
 
     except Exception:
         raise HTTPException(

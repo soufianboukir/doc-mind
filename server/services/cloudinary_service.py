@@ -3,7 +3,6 @@ import cloudinary.uploader
 
 from config.config import settings
 
-
 cloudinary.config(
     cloud_name=settings.cloudinary_cloud_name,
     api_key=settings.cloudinary_api_key,

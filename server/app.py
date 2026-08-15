@@ -20,6 +20,7 @@ app.include_router(auth_router)
 app.include_router(chats_router)
 app.include_router(documents_router)
 
+
 @app.get("/health", tags=["health"])
 def health_check():
     return {"status": "ok"}

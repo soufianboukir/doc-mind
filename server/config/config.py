@@ -15,7 +15,6 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int = 30
     refresh_token_expire_days: int = 30
 
-
     cloudinary_cloud_name: str
     cloudinary_api_key: str
     cloudinary_api_secret: str

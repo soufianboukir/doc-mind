@@ -81,6 +81,7 @@ class Document(Base):
             DocumentStatus,
             name="document_status",
             create_type=False,
+            values_callable=lambda enum_cls: [member.value for member in enum_cls],
         ),
         nullable=False,
         default=DocumentStatus.PENDING,
