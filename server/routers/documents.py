@@ -9,6 +9,8 @@ from fastapi import (
     status,
 )
 from sqlalchemy.orm import Session
+from fastapi import BackgroundTasks
+
 
 from db.db import get_db
 from models.chat import Chat
@@ -22,8 +24,7 @@ from services.cloudinary_service import (
 )
 
 from services.document_service import process_document_background
-
-from fastapi import BackgroundTasks
+import cloudinary
 
 router = APIRouter(
     prefix="/api/v1/chats",
@@ -72,7 +73,6 @@ def get_documents(
         updated_at=chat.updated_at,
         documents=documents,
     )
-
 
 
 @router.post(
@@ -185,7 +185,6 @@ async def upload_documents(
     return documents
 
 
-
 @router.delete(
     "/{chat_id}/documents/{document_id}",
     status_code=status.HTTP_204_NO_CONTENT,
@@ -225,20 +224,6 @@ def delete_document(
     db.commit()
 
     return None
-
-
-
-import uuid
-
-import cloudinary
-from fastapi import Depends, HTTPException, status
-from sqlalchemy.orm import Session
-
-from db.db import get_db
-from models.chat import Chat
-from models.document import Document
-from models.user import User
-from routers.auth import get_current_user
 
 
 @router.get(

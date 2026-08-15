@@ -1,5 +1,3 @@
-import os
-
 import cohere
 from config.config import settings
 
@@ -26,9 +24,7 @@ def get_embedding_client() -> cohere.Client:
         api_key = settings.cohere_api_key
 
         if not api_key:
-            raise RuntimeError(
-                "COHERE_API_KEY is not set. Add it to your environment "
-            )
+            raise RuntimeError("COHERE_API_KEY is not set. Add it to your environment ")
 
         _client = cohere.Client(api_key)
 

@@ -52,11 +52,7 @@ def process_document(
     PostgreSQL
     """
 
-    document = (
-        db.query(Document)
-        .filter(Document.id == document_id)
-        .first()
-    )
+    document = db.query(Document).filter(Document.id == document_id).first()
 
     if document is None:
         return
@@ -75,9 +71,7 @@ def process_document(
         # 2. Download from Cloudinary
         # ---------------------------------------------------------
 
-        pdf_bytes = download_document(
-            document.storage_path
-        )
+        pdf_bytes = download_document(document.storage_path)
 
         # ---------------------------------------------------------
         # 3. Extract PDF pages
@@ -86,9 +80,7 @@ def process_document(
         pages = extract_pdf_pages(pdf_bytes)
 
         if not pages:
-            raise ValueError(
-                "No readable text was found in the PDF."
-            )
+            raise ValueError("No readable text was found in the PDF.")
 
         document.page_count = len(pages)
 
@@ -102,9 +94,7 @@ def process_document(
 
         for page in pages:
 
-            text = clean_text(
-                page["text"]
-            )
+            text = clean_text(page["text"])
 
             if not text:
                 continue
@@ -129,34 +119,24 @@ def process_document(
                 chunk_index += 1
 
         if not chunk_records:
-            raise ValueError(
-                "No chunks could be generated from the document."
-            )
+            raise ValueError("No chunks could be generated from the document.")
 
         # ---------------------------------------------------------
         # 5. Generate embeddings
         # ---------------------------------------------------------
 
-        texts = [
-            chunk["content"]
-            for chunk in chunk_records
-        ]
+        texts = [chunk["content"] for chunk in chunk_records]
 
         embeddings = generate_embeddings(texts)
 
         if len(embeddings) != len(chunk_records):
-            raise ValueError(
-                "Embedding count does not match chunk count."
-            )
+            raise ValueError("Embedding count does not match chunk count.")
 
         # ---------------------------------------------------------
         # 6. Store chunks
         # ---------------------------------------------------------
 
-        for chunk, embedding in zip(
-            chunk_records,
-            embeddings,
-        ):
+        for chunk, embedding in zip(chunk_records, embeddings, strict=False):
             db_chunk = Chunk(
                 document_id=document.id,
                 chat_id=document.chat_id,
@@ -174,9 +154,7 @@ def process_document(
         # ---------------------------------------------------------
 
         document.status = DocumentStatus.COMPLETED
-        document.processed_at = __import__(
-            "datetime"
-        ).datetime.now(
+        document.processed_at = __import__("datetime").datetime.now(
             __import__("datetime").timezone.utc
         )
 
@@ -191,11 +169,7 @@ def process_document(
         db.rollback()
 
         # Re-fetch because rollback expires SQLAlchemy state
-        document = (
-            db.query(Document)
-            .filter(Document.id == document_id)
-            .first()
-        )
+        document = db.query(Document).filter(Document.id == document_id).first()
 
         if document:
             document.status = DocumentStatus.FAILED
