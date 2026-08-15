@@ -23,6 +23,32 @@ body {
     "Noto Color Emoji";
 }
 
+@theme {
+  --font-geist: var(--font-geist), sans-serif;
+}
+
+/* * {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+@keyframes fadeSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+} */
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);

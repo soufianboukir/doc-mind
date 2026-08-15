@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-// import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -8,11 +7,12 @@ export const metadata: Metadata = {
     "A simple and intuitive AI-powered document analysis tool that helps you extract insights and make informed decisions from your documents.",
 };
 
-import { Inter } from "next/font/google";
+import { Geist } from "next/font/google";
 
-const inter = Inter({
+const geist = Geist({
   subsets: ["latin"],
-  variable: "--font-inter",
+  weight: ["300", "400", "500", "600", "700"],
+  variable: "--font-geist-sans",
   display: "swap",
 });
 
@@ -25,7 +25,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={inter.variable}>
+    <html lang="en" className={geist.variable}>
       <body>
         <AuthProvider>{children}</AuthProvider>
       </body>
