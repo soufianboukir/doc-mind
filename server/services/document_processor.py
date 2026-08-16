@@ -11,7 +11,6 @@ from services.pdf_service import extract_pdf_pages
 from services.docx_service import extract_docx_pages
 from services.md_service import extract_md_pages
 
-
 EXTRACTORS = {
     "application/pdf": extract_pdf_pages,
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document": extract_docx_pages,
