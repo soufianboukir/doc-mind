@@ -20,6 +20,8 @@ from security import (
     verify_password,
 )
 
+from config.config import settings
+
 router = APIRouter(
     prefix="/api/v1/auth",
     tags=["auth"],
@@ -31,6 +33,8 @@ oauth2_scheme = OAuth2PasswordBearer(
     tokenUrl="/api/v1/auth/login",
 )
 
+IS_PRODUCTION = True if settings.environment == "production" else False
+
 
 def _set_auth_cookie(
     response: Response,
@@ -40,8 +44,8 @@ def _set_auth_cookie(
         key="access_token",
         value=token,
         httponly=True,
-        secure=False,  # True in production with HTTPS
-        samesite="lax",
+        secure=IS_PRODUCTION,
+        samesite="none" if IS_PRODUCTION else "lax",
         max_age=30 * 60,
         path="/",
     )
@@ -176,10 +180,10 @@ def read_current_user(
 
 @router.post("/logout")
 def logout(response: Response):
-
     response.delete_cookie(
         key="access_token",
         path="/",
+        samesite="none" if IS_PRODUCTION else "lax",
+        secure=IS_PRODUCTION,
     )
-
     return {"message": "Successfully logged out."}
