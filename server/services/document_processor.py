@@ -13,7 +13,8 @@ from services.md_service import extract_md_pages
 
 EXTRACTORS = {
     "application/pdf": extract_pdf_pages,
-    "application/vnd.openxmlformats-officedocument.wordprocessingml.document": extract_docx_pages,
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document": 
+    extract_docx_pages,
     "text/markdown": extract_md_pages,
     "text/plain": extract_md_pages,
 }
