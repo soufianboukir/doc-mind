@@ -20,7 +20,7 @@ class SourceChunk(BaseModel):
 
 
 class ChatQueryResponse(BaseModel):
-    answer: str
+    message: str
     sources: list[SourceChunk]
 
 
