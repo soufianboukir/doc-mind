@@ -97,7 +97,7 @@ function Chat({ chatId }: { chatId: string }) {
 
 
     return (
-         <div className='flex md:mx-20 border-l dark:border-l-white/20 border-l-black/20 border-r border-r-black/20 dark:border-r-white/20'>
+         <div className='md:mx-20 border-l dark:border-l-white/20 border-l-black/20 border-r border-r-black/20 dark:border-r-white/20'>
                   {
                     messages.length === 0 && <div className="flex justify-center mt-20 mb-10">
                       <h1 className="text-3xl font-mono font-semibold text-center">Hi <span className=''>{user.display_name}</span>, what would you like to talk about?</h1>
