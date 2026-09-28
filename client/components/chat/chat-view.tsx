@@ -91,8 +91,6 @@ function Chat({ chatId }: { chatId: string }) {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
   
-  if( status === 'loading') return null
-
   if (!user) return null;
 
 
@@ -104,11 +102,11 @@ function Chat({ chatId }: { chatId: string }) {
                     </div>
                   }
                   {messages && messages.length ? (
-                    <div className='h-[73vh] mt-2 overflow-y-scroll scrollbar-hide w-[100%] md:w-[80%] mx-auto'>
+                    <div className='h-[73vh] mt-2 overflow-y-scroll scrollbar-hide md:w-[80%] mx-auto'>
                       {messages.map((mssg: Message, index: number) => (
                         <div key={index} className="flex flex-col mb-6">
                           <div className={`flex ${mssg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                            <div className="flex gap-2 items-start max-w-[100%] md:max-w-[80%]">
+                            <div className="flex gap-2 items-start md:max-w-[80%]">
                               {mssg.role === 'ai' && (
                                 <Image
                                   src={'/icons/app-logo.png'}
@@ -119,7 +117,7 @@ function Chat({ chatId }: { chatId: string }) {
                                 />
                               )}
                               <div className="flex flex-col">
-                                <span className={`font-semibold font-mono bg-muted rounded-md px-3 py-2 break-words ${mssg.role === 'ai' ? 'rounded-tl-none ': 'rounded-tr-none'}`}>
+                                <span className={`font-semibold font-mono bg-muted rounded-md px-3 py-2 ${mssg.role === 'ai' ? 'rounded-tl-none ': 'rounded-tr-none'}`}>
                                   {mssg.content.includes('```') ? (
                                     mssg.content.split(/```/).map((block, i) => (
                                       i % 2 === 0 ? (
@@ -219,13 +217,6 @@ function Chat({ chatId }: { chatId: string }) {
                     <div ref={messagesEndRef}/>
                     </div>
                   ) : null}
-
-                  <div className="fixed bottom-4 left-4 px-4 py-2 bg-white dark:bg-zinc-900 border border-blue-500 shadow-lg animate-fade-in font-semibold rounded-full">
-                    <a className="text-sm text-gray-700 dark:text-gray-300" href='https://soufianboukir.com' target='_blank'>
-                      Built with ❤️ by <span className="text-blue-600 font-semibold">Soufian</span>
-                    </a>
-                  </div>
-
 
                   <div className="w-[90%] md:w-[60%] mx-auto relative">
                     <Textarea placeholder="Type somthing..." onKeyDown={handleEnterPressed} className="text-sm"  rows={4} value={message} onChange={(e) => setMessage(e.target.value)}/>
