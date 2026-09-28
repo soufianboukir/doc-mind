@@ -1,7 +1,11 @@
-export default function ChatPage() {
-  return (
-    <div>
-      <h1>Chat</h1>
-    </div>
-  );
+import { ChatView } from "@/components/chat/chat-view";
+
+interface ChatPageProps {
+  params: Promise<{ id: string }>;
+}
+
+export default async function ChatPage({ params }: ChatPageProps) {
+  const { id } = await params;
+
+  return <ChatView chatId={id} />;
 }
