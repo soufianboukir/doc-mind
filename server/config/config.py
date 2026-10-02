@@ -25,6 +25,9 @@ class Settings(BaseSettings):
     cloudinary_api_key: str
     cloudinary_api_secret: str
 
+    groq_api_key: str
+    groq_model: str = "llama-3.3-70b-versatile"
+
     model_config = SettingsConfigDict(
         env_file=ENV_FILE, env_file_encoding="utf-8", extra="ignore"
     )
