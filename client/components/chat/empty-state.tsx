@@ -13,8 +13,8 @@ export function EmptyState() {
         Nothing asked yet
       </h2>
       <p className="max-w-sm text-[13px] leading-relaxed text-[#8C8C93]">
-        Ask a question about the documents in this chat. Every answer comes
-        with the exact passage it was pulled from.
+        Ask a question about the documents in this chat. Every answer comes with
+        the exact passage it was pulled from.
       </p>
     </div>
   );
