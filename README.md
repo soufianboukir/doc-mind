@@ -1,1 +1,3 @@
 # ADDING README.MD
+
+docmind
