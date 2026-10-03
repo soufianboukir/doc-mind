@@ -259,8 +259,6 @@ router = APIRouter(
     prefix="/api/v1/chats",
     tags=["messages"],
 )
-
-
 @router.get(
     "/{chat_id}/messages",
     response_model=list[MessageOut],
