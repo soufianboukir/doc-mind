@@ -193,21 +193,6 @@ CREATE TABLE IF NOT EXISTS conflicts (
 
 CREATE INDEX IF NOT EXISTS ix_conflicts_message_id ON conflicts (message_id);
 
--- ---------------------------------------------------------------------
--- 9. feedback
--- ---------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS feedback (
-    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    message_id      UUID NOT NULL REFERENCES messages(id) ON DELETE CASCADE,
-    user_id         UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    rating          SMALLINT NOT NULL CHECK (rating IN (-1, 1)),  -- thumbs down / thumbs up
-    note            TEXT,
-    created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
-    CONSTRAINT ux_feedback_message_user UNIQUE (message_id, user_id)
-);
-
-CREATE INDEX IF NOT EXISTS ix_feedback_message_id ON feedback (message_id);
-
 -- =====================================================================
 -- End of schema
 -- =====================================================================

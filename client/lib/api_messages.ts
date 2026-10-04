@@ -3,8 +3,7 @@ import type { ChatQueryResponse, MessageOut } from "./types";
 // Backend runs on a different origin locally, so every request needs
 // credentials: "include" to send the httpOnly access_token cookie set
 // by /api/v1/auth/login. Point this at your deployed API in prod via env.
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000";
 
 export class ApiError extends Error {
   status: number;

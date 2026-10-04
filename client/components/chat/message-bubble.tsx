@@ -58,9 +58,7 @@ export function MessageBubble({ message, onRetry }: MessageBubbleProps) {
               <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-current opacity-60" />
             </div>
           ) : (
-            <p className="whitespace-pre-wrap break-words">
-              {message.content}
-            </p>
+            <p className="whitespace-pre-wrap break-words">{message.content}</p>
           )}
         </div>
 

@@ -35,6 +35,7 @@ class Message(Base):
             MessageRole,
             name="message_role",
             create_type=False,
+            values_callable=lambda enum_cls: [member.value for member in enum_cls],
         ),
         nullable=False,
     )

@@ -1,236 +1,347 @@
-'use client'
+"use client";
 
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Copy, CopyCheck, Loader, Send, ThumbsDown, ThumbsUp } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
-import Image from 'next/image';
-import { toast } from 'sonner';
+import { useCallback, useEffect, useState, useRef } from "react";
+import { useParams } from "next/navigation";
+import { Loader2, Send } from "lucide-react";
+
+import { getChatMessages, sendChatMessage } from "@/lib/api/chats";
+
+import type { Message, SourceChunk } from "@/types/chat";
+import Image from "next/image";
 import { useAuth } from "@/context/auth-context";
+import { MarkdownContent } from "@/app/chat/mardown-content";
 
-
-type Message = {
-  role: 'user' | 'ai',
-  content: string
+interface AssistantResponse {
+  message: Message;
+  sources: SourceChunk[];
 }
 
+export default function ChatPage() {
+  const { id } = useParams<{ id: string }>();
 
-function Chat({ chatId }: { chatId: string }) {
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [sources, setSources] = useState<Record<string, SourceChunk[]>>({});
 
-
-  const [message,setMessage] = useState('')
-  const [loading,setLoading] = useState(false)
-  const disableSend = message === ''
-  const [messages,setMessages] = useState<Message[]>([])
-  const [copy,setCopy] = useState({
-    index: 0,
-    type: '',
-  })
-  const [dots, setDots] = useState('')
+  const [input, setInput] = useState("");
   const { user } = useAuth();
+  const [loadingMessages, setLoadingMessages] = useState(true);
 
-  console.log('user', user)
-  
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [sending, setSending] = useState(false);
 
-  const handleSend = async () =>{
-    try{
-      setLoading(true)
-      setMessage('')
-      
-      setMessages((prev) => [...prev, { role: 'user', content: message }]);
+  const [error, setError] = useState<string | null>(null);
 
-      // if(res.status === 200){
-      //   setMessages((prev) => [...prev, { role: 'ai', content: res.data.response }]);
-      // }
-      
-    }catch{
+  const bottomRef = useRef<HTMLDivElement>(null);
+  const hasScrolledInitially = useRef(false);
 
-    }finally{
-      setLoading(false)
+  // Reset when switching to another chat
+  useEffect(() => {
+    hasScrolledInitially.current = false;
+  }, [id]);
+
+  useEffect(() => {
+    if (loadingMessages) return;
+
+    bottomRef.current?.scrollIntoView({
+      // Jump instantly on first load, animate for new messages
+      behavior: hasScrolledInitially.current ? "smooth" : "auto",
+      block: "end",
+    });
+
+    hasScrolledInitially.current = true;
+  }, [messages, sending, loadingMessages]);
+
+  const loadMessages = useCallback(async () => {
+    try {
+      setLoadingMessages(true);
+      setError(null);
+
+      const data = await getChatMessages(id);
+
+      setMessages(data);
+    } catch (error) {
+      console.error(error);
+
+      setError(
+        error instanceof Error ? error.message : "Failed to load messages.",
+      );
+    } finally {
+      setLoadingMessages(false);
+    }
+  }, [id]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function load() {
+      try {
+        setLoadingMessages(true);
+        setError(null);
+
+        const data = await getChatMessages(id);
+
+        if (!cancelled) {
+          setMessages(data);
+        }
+      } catch (error) {
+        if (!cancelled) {
+          console.error(error);
+
+          setError(
+            error instanceof Error ? error.message : "Failed to load messages.",
+          );
+        }
+      } finally {
+        if (!cancelled) {
+          setLoadingMessages(false);
+        }
+      }
+    }
+
+    load();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [id]);
+
+  async function handleSendMessage() {
+    const query = input.trim();
+
+    if (!query || sending) {
+      return;
+    }
+
+    setError(null);
+    setSending(true);
+
+    // --------------------------------------------------
+    // Optimistic user message
+    // --------------------------------------------------
+
+    const optimisticMessage: Message = {
+      id: `optimistic-${Date.now()}`,
+      chat_id: id,
+      role: "user",
+      content: query,
+      latency_ms: null,
+      llm_provider: null,
+      created_at: new Date().toISOString(),
+    };
+
+    setMessages((previous) => [...previous, optimisticMessage]);
+
+    setInput("");
+
+    try {
+      // --------------------------------------------------
+      // Send query to backend
+      // --------------------------------------------------
+
+      const response: AssistantResponse = await sendChatMessage(id, query);
+
+      // --------------------------------------------------
+      // Replace optimistic user message with real one
+      // and append assistant response
+      // --------------------------------------------------
+
+      setMessages((previous) => [
+        ...previous.filter((message) => message.id !== optimisticMessage.id),
+        {
+          ...optimisticMessage,
+          // Backend created_at/id are authoritative.
+          // We don't currently receive the user message
+          // from the query endpoint, so the optimistic
+          // message remains as the visual representation.
+        },
+        response.message,
+      ]);
+
+      // --------------------------------------------------
+      // Store sources associated with this assistant
+      // message.
+      // --------------------------------------------------
+
+      setSources((previous) => ({
+        ...previous,
+        [response.message.id]: response.sources,
+      }));
+    } catch (error) {
+      console.error(error);
+
+      // Remove optimistic message if request failed.
+      setMessages((previous) =>
+        previous.filter((message) => message.id !== optimisticMessage.id),
+      );
+
+      setInput(query);
+
+      setError(
+        error instanceof Error ? error.message : "Failed to send message.",
+      );
+    } finally {
+      setSending(false);
     }
   }
 
-  const handleEnterPressed = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      if (!disableSend && !loading) {
-        handleSend();
-      }
+  function handleKeyDown(event: React.KeyboardEvent<HTMLTextAreaElement>) {
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
+
+      handleSendMessage();
     }
-  };
+  }
 
-  const handleAction = async (index: number, type: 'text' | 'code' | 'like' | 'dislike', text?: string) => {    
-    try {      
-      if( type === 'code' || type === 'text' ){
-        await navigator.clipboard.writeText(text!);
-        toast.success("Copied to cliboard")
-        setCopy({type, index})
-        setTimeout(() => {
-          setCopy({index:0,  type: ''})
-        }, 2000);
-      }else{
-        toast.success('Thank you for your feedback')
-      }
-    } catch (err) {
-      console.error('Failed to copy:', err);
-    }
-  };
-  
-  useEffect(() => {
-    if (!loading) return;
-
-    const interval = setInterval(() => {
-      setDots((prev) => (prev.length >= 3 ? '' : prev + '.'))
-    }, 500)
-
-    return () => clearInterval(interval)
-  }, [loading])
-
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
-  
-  if (!user) return null;
-
-
+  if (loadingMessages) {
     return (
-         <div className='md:mx-20 border-l dark:border-l-white/20 border-l-black/20 border-r border-r-black/20 dark:border-r-white/20'>
-                  {
-                    messages.length === 0 && <div className="flex justify-center mt-20 mb-10">
-                      <h1 className="text-3xl font-mono font-semibold text-center">Hi <span className=''>{user.display_name}</span>, what would you like to talk about?</h1>
-                    </div>
+      <div className="flex flex-1 items-center justify-center">
+        <Loader2 className="size-5 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex h-full flex-col">
+      <div className="flex-1 overflow-y-auto pb-20">
+        <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 py-6">
+          {messages.map((message) => (
+            <div
+              key={message.id}
+              className={
+                message.role === "user"
+                  ? "ml-auto max-w-[80%]"
+                  : "mr-auto w-full max-w-[90%]"
+              }
+            >
+              <div className="flex gap-2">
+                <div
+                  className={
+                    message.role === "user"
+                      ? "rounded-2xl bg-primary px-4 py-3 text-primary-foreground"
+                      : "rounded-2xl border bg-card px-4 py-4"
                   }
-                  {messages && messages.length ? (
-                    <div className='h-[73vh] mt-2 overflow-y-scroll scrollbar-hide md:w-[80%] mx-auto'>
-                      {messages.map((mssg: Message, index: number) => (
-                        <div key={index} className="flex flex-col mb-6">
-                          <div className={`flex ${mssg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                            <div className="flex gap-2 items-start md:max-w-[80%]">
-                              {mssg.role === 'ai' && (
-                                <Image
-                                  src={'/icons/app-logo.png'}
-                                  width={30}
-                                  height={30}
-                                  alt={'user logo'}
-                                  className="rounded-full md:block hidden"
-                                />
-                              )}
-                              <div className="flex flex-col">
-                                <span className={`font-semibold font-mono bg-muted rounded-md px-3 py-2 ${mssg.role === 'ai' ? 'rounded-tl-none ': 'rounded-tr-none'}`}>
-                                  {mssg.content.includes('```') ? (
-                                    mssg.content.split(/```/).map((block, i) => (
-                                      i % 2 === 0 ? (
-                                        <span key={i}>
-                                          {block.split(/(\*\*.*?\*\*|[-•*]\s)/).map((part, j) => {
-                                            if (part.startsWith('**') && part.endsWith('**')) {
-                                              return <span key={j} className="text-blue-400">{part.slice(2, -2)}</span>;
-                                            } else if (['- ', '• ', '* '].some(bullet => part.startsWith(bullet))) {
-                                              return <><br key={j}/><br/>{part}</>;
-                                            }
-                                            return part;
-                                          })}
-                                        </span>
-                                      ) : (
-                                        <div key={i} className="dark:bg-black dark:text-white bg-white text-black font-mono text-sm p-3 rounded-md my-2 whitespace-pre-wrap">
-                                          <div className='flex justify-end'>
-                                            {
-                                              copy.type === 'code' && copy.index === index ? 
-                                              <div className='flex items-center gap-2 cursor-pointer text-green-600'>
-                                                <CopyCheck className='w-4 h-4'/>
-                                                <span>Copied</span>
-                                              </div>
-                                              : <button className='flex items-center gap-2 cursor-pointer' onClick={() => handleAction(index,'code',block)}>
-                                                <Copy className='w-4 h-4'/>
-                                                <span>Copy</span>
-                                              </button>
-                                            }
-                                          </div>
-                                          {block}
-                                        </div>
-                                      )
-                                    ))
-                                  ) : (
-                                    <span>
-                                    {mssg.content.split(/(\*\*.*?\*\*|[-•*]\s)/).map((part, i) => {
-                                      if (part.startsWith('**') && part.endsWith('**')) {
-                                        return <span key={i} className="text-blue-400">{part.slice(2, -2)}</span>;
-                                      } else if (['- ', '• ', '* '].some(bullet => part.startsWith(bullet))) {
-                                        return <><br key={i}/><br/>{part}</>;
-                                      } else if (
-                                        part.toLowerCase().includes('soufian boukir') ||
-                                        part.toLowerCase().includes('soufianboukir.com')
-                                      ) {
-                                        const parts = part.split(/(soufian boukir|soufianboukir\.com)/i);
-                                      
-                                        return parts.map((p, j) =>
-                                          p.toLowerCase() === 'soufian boukir' || p.toLowerCase() === 'soufianboukir.com'
-                                            ? <a key={`${i}-${j}`} href='https://soufianboukir.com' target='_blank' className="text-yellow-600 hover:text-yellow-700 duration-100">{p}</a>
-                                            : p
-                                        );
-                                      }
-                                      return part;
-                                    })}
-                                  </span>
-                                  )}
-                                </span>
-                                {mssg.role === 'ai' && (
-                                  <div className="flex justify-end gap-3 mt-2">
-                                    {
-                                      copy.type === 'text' && index === copy.index ?
-                                        <CopyCheck className="w-4 h-4 stroke-3 cursor-pointer hover:opacity-70 text-green-600" />
-                                      :
-                                      <Copy className="w-4 h-4 stroke-3 cursor-pointer hover:opacity-70" onClick={() => handleAction(index,'text',mssg.content)}/>
-                                    }
-                                    <ThumbsUp className="w-4 h-4 stroke-3 cursor-pointer hover:opacity-70" onClick={() => handleAction(index,'like')}/>
-                                    <ThumbsDown className="w-4 h-4 stroke-3 cursor-pointer hover:opacity-70" onClick={() => handleAction(index,'dislike')}/>
-                                  </div>
-                                )}
-                              </div>
-                              {mssg.role === 'user' && user.avatar_url && (
-                                <Image
-                                  src={user.avatar_url}
-                                  width={30}
-                                  height={30}
-                                  alt={'user logo'}
-                                  className="rounded-full md:block hidden"
-                                />
-                              )}
-                            </div>
-                          </div>
+                >
+                  {message.role === "user" ? (
+                    <p className="whitespace-pre-wrap text-sm">
+                      {message.content}
+                    </p>
+                  ) : (
+                    <>
+                      <MarkdownContent content={message.content} />
+                      <div className="flex gap-2">
+                        {message.llm_provider && (
+                          <p className="text-xs bg-green-300 text-green-950 px-2 py-0.5 border border-green-950 rounded-2xl w-[30%] text-center">
+                            {message.llm_provider}
+                          </p>
+                        )}
+                        {message.latency_ms && (
+                          <p className="text-xs bg-blue-400 text-blue-950 px-2 py-0.5 border border-blue-950 rounded-2xl w-20 text-center">
+                            {message.latency_ms} ms
+                          </p>
+                        )}
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                {message.role === "user" && (
+                  <Image
+                    width={50}
+                    height={50}
+                    src={user?.avatar_url || "/default_user.jpeg"}
+                    alt="User image"
+                    className="size-8 shrink-0 rounded-2xl"
+                  />
+                )}
+              </div>
+
+              {/* Sources */}
+
+              {message.role === "assistant" &&
+                sources[message.id]?.length > 0 && (
+                  <div className="mt-3 space-y-2">
+                    <p className="text-xs font-medium text-muted-foreground">
+                      Sources
+                    </p>
+
+                    {sources[message.id].map((source) => (
+                      <div
+                        key={source.chunk_id}
+                        className="rounded-lg border bg-muted/30 p-3"
+                      >
+                        <div className="flex items-center justify-between gap-3">
+                          <span className="truncate text-xs font-medium">
+                            {source.filename}
+                          </span>
+
+                          {source.page_number && (
+                            <span className="shrink-0 text-xs text-muted-foreground">
+                              Page {source.page_number}
+                            </span>
+                          )}
                         </div>
-                      ))}
-                      {
-                        loading && <div className='mb-3'>
-                            <div className='flex justify-start gap-2 items-center font-semibold font-mono'>
-                              <Image
-                                src={'/icons/app-logo.png'}
-                                width={30}
-                                height={30}
-                                alt={'user logo'}
-                                className="rounded-full"
-                              />
-                              <span>Thinking{dots}</span>
-                            </div>
-                          </div>
-                      }
-                    <div ref={messagesEndRef}/>
-                    </div>
-                  ) : null}
 
-                  <div className="w-[90%] md:w-[60%] mx-auto relative">
-                    <Textarea placeholder="Type somthing..." onKeyDown={handleEnterPressed} className="text-sm"  rows={4} value={message} onChange={(e) => setMessage(e.target.value)}/>
-                    <Button className="absolute end-3 bottom-3 rounded-full" disabled={disableSend || loading} onClick={handleSend}>
-                        {
-                          loading ? <Loader className='animate-spin'/>
-                          : 
-                          <Send />
-                        }
-                      </Button>
+                        <p className="mt-2 line-clamp-3 text-xs text-muted-foreground">
+                          {source.content}
+                        </p>
+                      </div>
+                    ))}
                   </div>
-          </div>   
-    )
+                )}
+            </div>
+          ))}
+
+          {/* Generation indicator */}
+
+          {sending && (
+            <div className="mr-auto flex items-center gap-2 text-sm text-muted-foreground">
+              <Loader2 className="size-4 animate-spin" />
+              Thinking...
+            </div>
+          )}
+
+          {error && (
+            <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
+              {error}
+            </div>
+          )}
+          <div ref={bottomRef} />
+        </div>
+      </div>
+
+      {/* Composer */}
+
+      <div className="border-t bg-background bottom-0 w-full fixed">
+        <div className="mx-auto w-full max-w-3xl px-4 py-4">
+          <div className="flex items-end gap-2 rounded-2xl border bg-muted/30 p-2">
+            <textarea
+              value={input}
+              onChange={(event) => setInput(event.target.value)}
+              onKeyDown={handleKeyDown}
+              disabled={sending}
+              placeholder="Ask something about your documents..."
+              rows={1}
+              className="max-h-40 min-h-10 flex-1 resize-none bg-transparent px-3 py-2 text-sm outline-none placeholder:text-muted-foreground"
+            />
+
+            <button
+              type="button"
+              disabled={!input.trim() || sending}
+              onClick={handleSendMessage}
+              className="inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground transition-opacity disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {sending ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <Send className="size-4" />
+              )}
+            </button>
+          </div>
+
+          <p className="mt-2 text-center text-xs text-muted-foreground">
+            Ask questions about the documents uploaded to this chat.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
 }
-
-
-export default Chat

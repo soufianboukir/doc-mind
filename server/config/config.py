@@ -25,6 +25,9 @@ class Settings(BaseSettings):
     cloudinary_api_key: str
     cloudinary_api_secret: str
 
+    gemini_api_key: str
+    gemini_model: str = "gemini-2.5-flash"
+
     groq_api_key: str
     groq_model: str = "llama-3.3-70b-versatile"
 

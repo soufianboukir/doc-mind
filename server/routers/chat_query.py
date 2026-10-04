@@ -41,10 +41,12 @@ def query_chat(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+
     # ---------------------------------------------------------
     # 1. Validate query
     # ---------------------------------------------------------
 
+    print(chat_id, payload.query)
     query = payload.query.strip()
 
     if not query:
@@ -103,11 +105,12 @@ def query_chat(
             input_type="search_query",
         )[0]
 
-    except Exception:
+    except Exception as e:
+        print("Embedding error:", repr(e))
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
-            detail="Failed to generate query embedding.",
-        ) from None
+            detail=f"Failed to generate query embedding: {e}",
+        ) from e
 
     # ---------------------------------------------------------
     # 5. Retrieve relevant chunks
@@ -118,14 +121,14 @@ def query_chat(
             db=db,
             chat_id=chat_id,
             query_embedding=query_embedding,
-            top_k=8,
         )
 
-    except Exception:
+    except Exception as e:
+        print("Retrieval error:", repr(e))
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to retrieve document context.",
-        ) from None
+            detail=f"Failed to retrieve document context: {e}",
+        ) from e
 
     if not results:
         latency_ms = int((time.perf_counter() - start_time) * 1000)
@@ -168,31 +171,27 @@ def query_chat(
     context_parts: list[str] = []
     sources: list[SourceChunk] = []
 
-    for chunk, filename, distance in results:
+    for chunk in results:
+        content = chunk["content"]
+        filename = chunk["filename"]
+        page_number = chunk["page_number"]
+        similarity = float(chunk["similarity"])
 
         context_parts.append(f"""
-File: {filename}
-Page: {chunk.page_number or "Unknown"}
+    File: {filename}
+    Page: {page_number or "Unknown"}
 
-{chunk.content}
-""")
-
-        similarity = max(
-            0.0,
-            min(
-                1.0,
-                1.0 - float(distance),
-            ),
-        )
+    {content}
+    """.strip())
 
         sources.append(
             SourceChunk(
-                chunk_id=str(chunk.id),
-                document_id=str(chunk.document_id),
+                chunk_id=str(chunk["id"]),
+                document_id=str(chunk["document_id"]),
                 filename=filename,
-                content=chunk.content,
-                page_number=chunk.page_number,
-                score=similarity,
+                content=content,
+                page_number=page_number,
+                score=max(0.0, min(1.0, similarity)),
             )
         )
 
@@ -208,11 +207,12 @@ Page: {chunk.page_number or "Unknown"}
             context=context,
         )
 
-    except Exception:
+    except Exception as e:
+        print("LLM error:", repr(e))
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
-            detail="Failed to generate answer.",
-        ) from None
+            detail=f"Failed to generate answer: {e}",
+        ) from e
 
     # ---------------------------------------------------------
     # 8. Calculate latency
@@ -230,7 +230,7 @@ Page: {chunk.page_number or "Unknown"}
         role=MessageRole.ASSISTANT,
         content=answer,
         latency_ms=latency_ms,
-        llm_provider=settings.groq_model,
+        llm_provider=settings.gemini_model,
     )
 
     db.add(assistant_message)
@@ -253,12 +253,6 @@ Page: {chunk.page_number or "Unknown"}
         ),
         sources=sources,
     )
-
-
-router = APIRouter(
-    prefix="/api/v1/chats",
-    tags=["messages"],
-)
 
 
 @router.get(
