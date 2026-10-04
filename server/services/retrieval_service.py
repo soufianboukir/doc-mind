@@ -12,18 +12,23 @@ def retrieve_chunks(
 ):
     sql = text("""
         SELECT
-            id,
-            document_id,
-            content,
-            page_number,
-            1 - (embedding <=> CAST(:embedding AS vector)) AS similarity
-        FROM chunks
-        WHERE chat_id = :chat_id
-        ORDER BY embedding <=> CAST(:embedding AS vector)
+            c.id,
+            c.document_id,
+            c.content,
+            c.page_number,
+            d.filename,
+            1 - (c.embedding <=> CAST(:embedding AS vector)) AS similarity
+        FROM chunks AS c
+        INNER JOIN documents AS d
+            ON d.id = c.document_id
+        WHERE c.chat_id = :chat_id
+        ORDER BY c.embedding <=> CAST(:embedding AS vector)
         LIMIT :limit
     """)
 
-    embedding_string = "[" + ",".join(str(value) for value in query_embedding) + "]"
+    embedding_string = "[" + ",".join(
+        str(value) for value in query_embedding
+    ) + "]"
 
     result = db.execute(
         sql,

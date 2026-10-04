@@ -121,7 +121,6 @@ def query_chat(
             db=db,
             chat_id=chat_id,
             query_embedding=query_embedding,
-            top_k=8,
         )
 
     except Exception as e:
@@ -172,31 +171,29 @@ def query_chat(
     context_parts: list[str] = []
     sources: list[SourceChunk] = []
 
-    for chunk, filename, distance in results:
+    for chunk in results:
+        content = chunk["content"]
+        filename = chunk["filename"]
+        page_number = chunk["page_number"]
+        similarity = float(chunk["similarity"])
 
-        context_parts.append(f"""
-File: {filename}
-Page: {chunk.page_number or "Unknown"}
+        context_parts.append(
+            f"""
+    File: {filename}
+    Page: {page_number or "Unknown"}
 
-{chunk.content}
-""")
-
-        similarity = max(
-            0.0,
-            min(
-                1.0,
-                1.0 - float(distance),
-            ),
+    {content}
+    """.strip()
         )
 
         sources.append(
             SourceChunk(
-                chunk_id=str(chunk.id),
-                document_id=str(chunk.document_id),
+                chunk_id=str(chunk["id"]),
+                document_id=str(chunk["document_id"]),
                 filename=filename,
-                content=chunk.content,
-                page_number=chunk.page_number,
-                score=similarity,
+                content=content,
+                page_number=page_number,
+                score=max(0.0, min(1.0, similarity)),
             )
         )
 

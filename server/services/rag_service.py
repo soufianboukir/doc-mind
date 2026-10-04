@@ -1,5 +1,3 @@
-# services/rag_service.py
-
 import uuid
 
 from sqlalchemy.orm import Session
@@ -14,13 +12,19 @@ def answer_question(
     chat_id: uuid.UUID,
     question: str,
 ):
-    # 1. Embed query
+    # ---------------------------------------------------------
+    # 1. Generate query embedding
+    # ---------------------------------------------------------
+
     query_embedding = generate_embeddings(
         [question],
         input_type="search_query",
     )[0]
 
+    # ---------------------------------------------------------
     # 2. Retrieve relevant chunks
+    # ---------------------------------------------------------
+
     chunks = retrieve_chunks(
         db=db,
         chat_id=chat_id,
@@ -30,24 +34,50 @@ def answer_question(
 
     if not chunks:
         return {
-            "answer": "I couldn't find relevant information in the uploaded documents.",
+            "answer": (
+                "I couldn't find relevant information "
+                "in the uploaded documents."
+            ),
             "sources": [],
         }
 
-    # 3. Extract text for LLM
-    context = [chunk["content"] for chunk in chunks]
+    # ---------------------------------------------------------
+    # 3. Build context
+    # ---------------------------------------------------------
 
+    context_parts = []
+
+    for chunk in chunks:
+        context_parts.append(
+            f"""
+File: {chunk["filename"]}
+Page: {chunk["page_number"] or "Unknown"}
+
+{chunk["content"]}
+""".strip()
+        )
+
+    context = "\n\n---\n\n".join(context_parts)
+
+    # ---------------------------------------------------------
     # 4. Generate answer
+    # ---------------------------------------------------------
+
     answer = generate_answer(
-        question=question,
+        query=question,
         context=context,
     )
 
-    # 5. Return answer + sources
+    # ---------------------------------------------------------
+    # 5. Build sources
+    # ---------------------------------------------------------
+
     sources = [
         {
             "chunk_id": str(chunk["id"]),
             "document_id": str(chunk["document_id"]),
+            "filename": chunk["filename"],
+            "content": chunk["content"],
             "page_number": chunk["page_number"],
             "similarity": float(chunk["similarity"]),
         }
