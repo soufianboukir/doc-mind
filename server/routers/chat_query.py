@@ -41,10 +41,12 @@ def query_chat(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    
     # ---------------------------------------------------------
     # 1. Validate query
     # ---------------------------------------------------------
 
+    print(chat_id, payload.query)
     query = payload.query.strip()
 
     if not query:
@@ -103,11 +105,12 @@ def query_chat(
             input_type="search_query",
         )[0]
 
-    except Exception:
+    except Exception as e:
+        print("Embedding error:", repr(e))
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
-            detail="Failed to generate query embedding.",
-        ) from None
+            detail=f"Failed to generate query embedding: {e}",
+        ) from e
 
     # ---------------------------------------------------------
     # 5. Retrieve relevant chunks
@@ -121,11 +124,12 @@ def query_chat(
             top_k=8,
         )
 
-    except Exception:
+    except Exception as e:
+        print("Retrieval error:", repr(e))
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to retrieve document context.",
-        ) from None
+            detail=f"Failed to retrieve document context: {e}",
+        ) from e
 
     if not results:
         latency_ms = int((time.perf_counter() - start_time) * 1000)
@@ -208,11 +212,12 @@ Page: {chunk.page_number or "Unknown"}
             context=context,
         )
 
-    except Exception:
+    except Exception as e:
+        print("LLM error:", repr(e))
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
-            detail="Failed to generate answer.",
-        ) from None
+            detail=f"Failed to generate answer: {e}",
+        ) from e
 
     # ---------------------------------------------------------
     # 8. Calculate latency
@@ -254,11 +259,6 @@ Page: {chunk.page_number or "Unknown"}
         sources=sources,
     )
 
-
-router = APIRouter(
-    prefix="/api/v1/chats",
-    tags=["messages"],
-)
 @router.get(
     "/{chat_id}/messages",
     response_model=list[MessageOut],
