@@ -19,11 +19,6 @@ class SourceChunk(BaseModel):
     score: float
 
 
-class ChatQueryResponse(BaseModel):
-    message: str
-    sources: list[SourceChunk]
-
-
 class MessageOut(BaseModel):
     id: uuid.UUID
     chat_id: uuid.UUID
@@ -32,3 +27,7 @@ class MessageOut(BaseModel):
     latency_ms: int | None = None
     llm_provider: str | None = None
     created_at: datetime
+
+class ChatQueryResponse(BaseModel):
+    message: MessageOut
+    sources: list[SourceChunk]
