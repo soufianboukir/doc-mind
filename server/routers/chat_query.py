@@ -232,7 +232,7 @@ def query_chat(
         role=MessageRole.ASSISTANT,
         content=answer,
         latency_ms=latency_ms,
-        llm_provider=settings.groq_model,
+        llm_provider=settings.gemini_model,
     )
 
     db.add(assistant_message)

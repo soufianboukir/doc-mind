@@ -1,8 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
 import { useParams } from "next/navigation";
-import { Loader2 } from "lucide-react";
+import { Loader2, Send } from "lucide-react";
 
 import { getChatMessages, sendChatMessage } from "@/lib/api/chats";
 
@@ -34,6 +34,26 @@ export default function ChatPage() {
   const [error, setError] = useState<string | null>(
     null,
   );
+
+  const bottomRef = useRef<HTMLDivElement>(null);
+  const hasScrolledInitially = useRef(false);
+
+  // Reset when switching to another chat
+  useEffect(() => {
+    hasScrolledInitially.current = false;
+  }, [id]);
+
+  useEffect(() => {
+    if (loadingMessages) return;
+
+    bottomRef.current?.scrollIntoView({
+      // Jump instantly on first load, animate for new messages
+      behavior: hasScrolledInitially.current ? "smooth" : "auto",
+      block: "end",
+    });
+
+    hasScrolledInitially.current = true;
+  }, [messages, sending, loadingMessages]);
 
   const loadMessages = useCallback(async () => {
     try {
@@ -205,7 +225,7 @@ export default function ChatPage() {
   return (
     <div className="flex h-full flex-col">
 
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto pb-20">
         <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 py-6">
           {messages.map((message) => (
             <div
@@ -227,7 +247,21 @@ export default function ChatPage() {
                   {message.role === "user" ? (
                     <p className="whitespace-pre-wrap text-sm">{message.content}</p>
                   ) : (
-                    <MarkdownContent content={message.content} />
+                    <>
+                       <MarkdownContent content={message.content} />
+                      <div className="flex gap-2">
+                        {
+                          message.llm_provider && (
+                            <p className="text-xs bg-green-300 text-green-950 px-2 py-0.5 border border-green-950 rounded-2xl w-[30%] text-center">{message.llm_provider}</p>
+                          )
+                        }
+                        {
+                          message.latency_ms && (
+                            <p className="text-xs bg-blue-400 text-blue-950 px-2 py-0.5 border border-blue-950 rounded-2xl w-20 text-center">{message.latency_ms} ms</p>
+                          )
+                        }
+                      </div>
+                    </>
                   )}
                 </div>
 
@@ -296,12 +330,15 @@ export default function ChatPage() {
               {error}
             </div>
           )}
+          <div ref={bottomRef} />
         </div>
       </div>
 
+      
+
       {/* Composer */}
 
-      <div className="border-t bg-background">
+      <div className="border-t bg-background bottom-0 w-full fixed">
         <div className="mx-auto w-full max-w-3xl px-4 py-4">
           <div className="flex items-end gap-2 rounded-2xl border bg-muted/30 p-2">
             <textarea
@@ -325,7 +362,7 @@ export default function ChatPage() {
               {sending ? (
                 <Loader2 className="size-4 animate-spin" />
               ) : (
-                "↑"
+                <Send className="size-4" />
               )}
             </button>
           </div>
