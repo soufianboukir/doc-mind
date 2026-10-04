@@ -20,20 +20,15 @@ export default function ChatPage() {
   const { id } = useParams<{ id: string }>();
 
   const [messages, setMessages] = useState<Message[]>([]);
-  const [sources, setSources] = useState<
-    Record<string, SourceChunk[]>
-  >({});
+  const [sources, setSources] = useState<Record<string, SourceChunk[]>>({});
 
   const [input, setInput] = useState("");
   const { user } = useAuth();
-  const [loadingMessages, setLoadingMessages] =
-    useState(true);
+  const [loadingMessages, setLoadingMessages] = useState(true);
 
   const [sending, setSending] = useState(false);
 
-  const [error, setError] = useState<string | null>(
-    null,
-  );
+  const [error, setError] = useState<string | null>(null);
 
   const bottomRef = useRef<HTMLDivElement>(null);
   const hasScrolledInitially = useRef(false);
@@ -67,9 +62,7 @@ export default function ChatPage() {
       console.error(error);
 
       setError(
-        error instanceof Error
-          ? error.message
-          : "Failed to load messages.",
+        error instanceof Error ? error.message : "Failed to load messages.",
       );
     } finally {
       setLoadingMessages(false);
@@ -94,9 +87,7 @@ export default function ChatPage() {
           console.error(error);
 
           setError(
-            error instanceof Error
-              ? error.message
-              : "Failed to load messages.",
+            error instanceof Error ? error.message : "Failed to load messages.",
           );
         }
       } finally {
@@ -137,10 +128,7 @@ export default function ChatPage() {
       created_at: new Date().toISOString(),
     };
 
-    setMessages((previous) => [
-      ...previous,
-      optimisticMessage,
-    ]);
+    setMessages((previous) => [...previous, optimisticMessage]);
 
     setInput("");
 
@@ -149,8 +137,7 @@ export default function ChatPage() {
       // Send query to backend
       // --------------------------------------------------
 
-      const response: AssistantResponse =
-        await sendChatMessage(id, query);
+      const response: AssistantResponse = await sendChatMessage(id, query);
 
       // --------------------------------------------------
       // Replace optimistic user message with real one
@@ -158,10 +145,7 @@ export default function ChatPage() {
       // --------------------------------------------------
 
       setMessages((previous) => [
-        ...previous.filter(
-          (message) =>
-            message.id !== optimisticMessage.id,
-        ),
+        ...previous.filter((message) => message.id !== optimisticMessage.id),
         {
           ...optimisticMessage,
           // Backend created_at/id are authoritative.
@@ -186,27 +170,20 @@ export default function ChatPage() {
 
       // Remove optimistic message if request failed.
       setMessages((previous) =>
-        previous.filter(
-          (message) =>
-            message.id !== optimisticMessage.id,
-        ),
+        previous.filter((message) => message.id !== optimisticMessage.id),
       );
 
       setInput(query);
 
       setError(
-        error instanceof Error
-          ? error.message
-          : "Failed to send message.",
+        error instanceof Error ? error.message : "Failed to send message.",
       );
     } finally {
       setSending(false);
     }
   }
 
-  function handleKeyDown(
-    event: React.KeyboardEvent<HTMLTextAreaElement>,
-  ) {
+  function handleKeyDown(event: React.KeyboardEvent<HTMLTextAreaElement>) {
     if (event.key === "Enter" && !event.shiftKey) {
       event.preventDefault();
 
@@ -224,7 +201,6 @@ export default function ChatPage() {
 
   return (
     <div className="flex h-full flex-col">
-
       <div className="flex-1 overflow-y-auto pb-20">
         <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 py-6">
           {messages.map((message) => (
@@ -245,21 +221,23 @@ export default function ChatPage() {
                   }
                 >
                   {message.role === "user" ? (
-                    <p className="whitespace-pre-wrap text-sm">{message.content}</p>
+                    <p className="whitespace-pre-wrap text-sm">
+                      {message.content}
+                    </p>
                   ) : (
                     <>
-                       <MarkdownContent content={message.content} />
+                      <MarkdownContent content={message.content} />
                       <div className="flex gap-2">
-                        {
-                          message.llm_provider && (
-                            <p className="text-xs bg-green-300 text-green-950 px-2 py-0.5 border border-green-950 rounded-2xl w-[30%] text-center">{message.llm_provider}</p>
-                          )
-                        }
-                        {
-                          message.latency_ms && (
-                            <p className="text-xs bg-blue-400 text-blue-950 px-2 py-0.5 border border-blue-950 rounded-2xl w-20 text-center">{message.latency_ms} ms</p>
-                          )
-                        }
+                        {message.llm_provider && (
+                          <p className="text-xs bg-green-300 text-green-950 px-2 py-0.5 border border-green-950 rounded-2xl w-[30%] text-center">
+                            {message.llm_provider}
+                          </p>
+                        )}
+                        {message.latency_ms && (
+                          <p className="text-xs bg-blue-400 text-blue-950 px-2 py-0.5 border border-blue-950 rounded-2xl w-20 text-center">
+                            {message.latency_ms} ms
+                          </p>
+                        )}
                       </div>
                     </>
                   )}
@@ -276,7 +254,6 @@ export default function ChatPage() {
                 )}
               </div>
 
-
               {/* Sources */}
 
               {message.role === "assistant" &&
@@ -286,31 +263,28 @@ export default function ChatPage() {
                       Sources
                     </p>
 
-                    {sources[message.id].map(
-                      (source) => (
-                        <div
-                          key={source.chunk_id}
-                          className="rounded-lg border bg-muted/30 p-3"
-                        >
-                          <div className="flex items-center justify-between gap-3">
-                            <span className="truncate text-xs font-medium">
-                              {source.filename}
+                    {sources[message.id].map((source) => (
+                      <div
+                        key={source.chunk_id}
+                        className="rounded-lg border bg-muted/30 p-3"
+                      >
+                        <div className="flex items-center justify-between gap-3">
+                          <span className="truncate text-xs font-medium">
+                            {source.filename}
+                          </span>
+
+                          {source.page_number && (
+                            <span className="shrink-0 text-xs text-muted-foreground">
+                              Page {source.page_number}
                             </span>
-
-                            {source.page_number && (
-                              <span className="shrink-0 text-xs text-muted-foreground">
-                                Page{" "}
-                                {source.page_number}
-                              </span>
-                            )}
-                          </div>
-
-                          <p className="mt-2 line-clamp-3 text-xs text-muted-foreground">
-                            {source.content}
-                          </p>
+                          )}
                         </div>
-                      ),
-                    )}
+
+                        <p className="mt-2 line-clamp-3 text-xs text-muted-foreground">
+                          {source.content}
+                        </p>
+                      </div>
+                    ))}
                   </div>
                 )}
             </div>
@@ -334,8 +308,6 @@ export default function ChatPage() {
         </div>
       </div>
 
-      
-
       {/* Composer */}
 
       <div className="border-t bg-background bottom-0 w-full fixed">
@@ -343,9 +315,7 @@ export default function ChatPage() {
           <div className="flex items-end gap-2 rounded-2xl border bg-muted/30 p-2">
             <textarea
               value={input}
-              onChange={(event) =>
-                setInput(event.target.value)
-              }
+              onChange={(event) => setInput(event.target.value)}
               onKeyDown={handleKeyDown}
               disabled={sending}
               placeholder="Ask something about your documents..."
@@ -368,8 +338,7 @@ export default function ChatPage() {
           </div>
 
           <p className="mt-2 text-center text-xs text-muted-foreground">
-            Ask questions about the documents uploaded to
-            this chat.
+            Ask questions about the documents uploaded to this chat.
           </p>
         </div>
       </div>
