@@ -41,7 +41,7 @@ def query_chat(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    
+
     # ---------------------------------------------------------
     # 1. Validate query
     # ---------------------------------------------------------
@@ -177,14 +177,12 @@ def query_chat(
         page_number = chunk["page_number"]
         similarity = float(chunk["similarity"])
 
-        context_parts.append(
-            f"""
+        context_parts.append(f"""
     File: {filename}
     Page: {page_number or "Unknown"}
 
     {content}
-    """.strip()
-        )
+    """.strip())
 
         sources.append(
             SourceChunk(
@@ -255,6 +253,7 @@ def query_chat(
         ),
         sources=sources,
     )
+
 
 @router.get(
     "/{chat_id}/messages",

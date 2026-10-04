@@ -26,9 +26,7 @@ def retrieve_chunks(
         LIMIT :limit
     """)
 
-    embedding_string = "[" + ",".join(
-        str(value) for value in query_embedding
-    ) + "]"
+    embedding_string = "[" + ",".join(str(value) for value in query_embedding) + "]"
 
     result = db.execute(
         sql,

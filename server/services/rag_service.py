@@ -35,8 +35,7 @@ def answer_question(
     if not chunks:
         return {
             "answer": (
-                "I couldn't find relevant information "
-                "in the uploaded documents."
+                "I couldn't find relevant information " "in the uploaded documents."
             ),
             "sources": [],
         }
@@ -48,14 +47,12 @@ def answer_question(
     context_parts = []
 
     for chunk in chunks:
-        context_parts.append(
-            f"""
+        context_parts.append(f"""
 File: {chunk["filename"]}
 Page: {chunk["page_number"] or "Unknown"}
 
 {chunk["content"]}
-""".strip()
-        )
+""".strip())
 
     context = "\n\n---\n\n".join(context_parts)
 

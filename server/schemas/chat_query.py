@@ -28,6 +28,7 @@ class MessageOut(BaseModel):
     llm_provider: str | None = None
     created_at: datetime
 
+
 class ChatQueryResponse(BaseModel):
     message: MessageOut
     sources: list[SourceChunk]
