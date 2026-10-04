@@ -7,6 +7,9 @@ import { Loader2 } from "lucide-react";
 import { getChatMessages, sendChatMessage } from "@/lib/api/chats";
 
 import type { Message, SourceChunk } from "@/types/chat";
+import Image from "next/image";
+import { useAuth } from "@/context/auth-context";
+import { MarkdownContent } from "@/app/chat/mardown-content";
 
 interface AssistantResponse {
   message: Message;
@@ -22,7 +25,7 @@ export default function ChatPage() {
   >({});
 
   const [input, setInput] = useState("");
-
+  const { user } = useAuth();
   const [loadingMessages, setLoadingMessages] =
     useState(true);
 
@@ -201,10 +204,9 @@ export default function ChatPage() {
 
   return (
     <div className="flex h-full flex-col">
-      {/* Messages */}
 
       <div className="flex-1 overflow-y-auto">
-        <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 py-6">
+        <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 py-6">
           {messages.map((message) => (
             <div
               key={message.id}
@@ -214,17 +216,32 @@ export default function ChatPage() {
                   : "mr-auto w-full max-w-[90%]"
               }
             >
-              <div
-                className={
-                  message.role === "user"
-                    ? "rounded-2xl bg-primary px-4 py-3 text-primary-foreground"
-                    : "rounded-2xl border bg-card px-4 py-4"
-                }
-              >
-                <p className="whitespace-pre-wrap text-sm">
-                  {message.content}
-                </p>
+              <div className="flex gap-2">
+                <div
+                  className={
+                    message.role === "user"
+                      ? "rounded-2xl bg-primary px-4 py-3 text-primary-foreground"
+                      : "rounded-2xl border bg-card px-4 py-4"
+                  }
+                >
+                  {message.role === "user" ? (
+                    <p className="whitespace-pre-wrap text-sm">{message.content}</p>
+                  ) : (
+                    <MarkdownContent content={message.content} />
+                  )}
+                </div>
+
+                {message.role === "user" && (
+                  <Image
+                    width={50}
+                    height={50}
+                    src={user?.avatar_url || "/default_user.jpeg"}
+                    alt="User image"
+                    className="size-8 shrink-0 rounded-2xl"
+                  />
+                )}
               </div>
+
 
               {/* Sources */}
 
