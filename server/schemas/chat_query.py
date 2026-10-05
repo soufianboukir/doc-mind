@@ -32,3 +32,7 @@ class MessageOut(BaseModel):
 class ChatQueryResponse(BaseModel):
     message: MessageOut
     sources: list[SourceChunk]
+
+
+class MessageWithSources(MessageOut):
+    sources: list[SourceChunk] = []

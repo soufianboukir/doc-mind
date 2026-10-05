@@ -11,6 +11,13 @@ from sqlalchemy.orm import Session
 
 from db.db import get_db
 from models.chat import Chat
+from collections import defaultdict
+
+from models.chunk import Chunk
+from models.document import Document
+from models.source import MessageSource
+from schemas.chat_query import MessageWithSources
+
 from models.message import Message, MessageRole
 from models.user import User
 from routers.auth import get_current_user
@@ -29,6 +36,8 @@ router = APIRouter(
     prefix="/api/v1/chats",
     tags=["chat-query"],
 )
+
+MIN_SIMILARITY = 0.4
 
 
 @router.post(
@@ -130,11 +139,16 @@ def query_chat(
             detail=f"Failed to retrieve document context: {e}",
         ) from e
 
+    # Keep only sufficiently similar chunks
+    results = [
+        chunk for chunk in results if float(chunk["similarity"]) > MIN_SIMILARITY
+    ]
+
     if not results:
         latency_ms = int((time.perf_counter() - start_time) * 1000)
 
         answer = (
-            "I couldn't find any processed document content "
+            "I couldn't find any content in your documents "
             "relevant to your question."
         )
 
@@ -221,7 +235,7 @@ def query_chat(
     latency_ms = int((time.perf_counter() - start_time) * 1000)
 
     # ---------------------------------------------------------
-    # 9. Store assistant message
+    # 9. Store assistant message + its sources (one transaction)
     # ---------------------------------------------------------
 
     assistant_message = Message(
@@ -234,6 +248,21 @@ def query_chat(
     )
 
     db.add(assistant_message)
+    db.flush()  # makes sure the message row exists before the FK rows
+
+    db.add_all(
+        [
+            MessageSource(
+                id=uuid.uuid4(),
+                message_id=assistant_message.id,
+                chunk_id=uuid.UUID(source.chunk_id),
+                score=source.score,
+                rank=rank,
+            )
+            for rank, source in enumerate(sources)
+        ]
+    )
+
     db.commit()
     db.refresh(assistant_message)
 
@@ -257,14 +286,13 @@ def query_chat(
 
 @router.get(
     "/{chat_id}/messages",
-    response_model=list[MessageOut],
+    response_model=list[MessageWithSources],
 )
 def get_chat_messages(
     chat_id: uuid.UUID,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    # Verify that the chat belongs to the authenticated user
     chat = (
         db.query(Chat)
         .filter(
@@ -280,7 +308,6 @@ def get_chat_messages(
             detail="Chat not found.",
         )
 
-    # Get messages ordered chronologically
     messages = (
         db.query(Message)
         .filter(Message.chat_id == chat_id)
@@ -288,4 +315,40 @@ def get_chat_messages(
         .all()
     )
 
-    return messages
+    sources_by_message: dict[uuid.UUID, list[SourceChunk]] = defaultdict(list)
+
+    if messages:
+        rows = (
+            db.query(MessageSource, Chunk, Document)
+            .join(Chunk, Chunk.id == MessageSource.chunk_id)
+            .join(Document, Document.id == Chunk.document_id)
+            .filter(MessageSource.message_id.in_([m.id for m in messages]))
+            .order_by(MessageSource.rank.asc())
+            .all()
+        )
+
+        for source, chunk, document in rows:
+            sources_by_message[source.message_id].append(
+                SourceChunk(
+                    chunk_id=str(chunk.id),
+                    document_id=str(document.id),
+                    filename=document.filename,
+                    content=chunk.content,
+                    page_number=chunk.page_number,
+                    score=float(source.score),
+                )
+            )
+
+    return [
+        MessageWithSources(
+            id=message.id,
+            chat_id=message.chat_id,
+            role=message.role.value,
+            content=message.content,
+            latency_ms=message.latency_ms,
+            llm_provider=message.llm_provider,
+            created_at=message.created_at,
+            sources=sources_by_message.get(message.id, []),
+        )
+        for message in messages
+    ]

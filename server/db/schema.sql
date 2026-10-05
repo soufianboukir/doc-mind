@@ -154,31 +154,7 @@ CREATE INDEX IF NOT EXISTS ix_messages_chat_id ON messages (chat_id);
 CREATE INDEX IF NOT EXISTS ix_messages_chat_created ON messages (chat_id, created_at);
 
 -- ---------------------------------------------------------------------
--- 7. citations
--- Per-claim verification results: links one assistant message to the
--- specific chunk(s) used to check each atomic claim in that answer.
--- ---------------------------------------------------------------------
-DO $$ BEGIN
-    CREATE TYPE citation_verdict AS ENUM ('supported', 'weak', 'unverified', 'contradicted');
-EXCEPTION WHEN duplicate_object THEN NULL;
-END $$;
-
-CREATE TABLE IF NOT EXISTS citations (
-    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    message_id      UUID NOT NULL REFERENCES messages(id) ON DELETE CASCADE,
-    chunk_id        UUID NOT NULL REFERENCES chunks(id) ON DELETE CASCADE,
-    claim_text      TEXT NOT NULL,           -- the decomposed atomic claim being checked
-    claim_index     INTEGER NOT NULL,        -- ordinal position of this claim within the answer
-    verdict         citation_verdict NOT NULL,
-    confidence      NUMERIC(4,3) NOT NULL CHECK (confidence >= 0 AND confidence <= 1),
-    created_at      TIMESTAMPTZ NOT NULL DEFAULT now()
-);
-
-CREATE INDEX IF NOT EXISTS ix_citations_message_id ON citations (message_id);
-CREATE INDEX IF NOT EXISTS ix_citations_chunk_id ON citations (chunk_id);
-
--- ---------------------------------------------------------------------
--- 8. conflicts
+-- 7. conflicts
 -- Logged cross-document contradictions surfaced in a given answer.
 -- ---------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS conflicts (
@@ -192,6 +168,25 @@ CREATE TABLE IF NOT EXISTS conflicts (
 );
 
 CREATE INDEX IF NOT EXISTS ix_conflicts_message_id ON conflicts (message_id);
+
+-- ---------------------------------------------------------------------
+-- 8. sources
+-- sources are the chunks that contributed to a given answer, along with
+-- their relevance score and rank (0 = most relevant).
+-- ---------------------------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS sources (
+    id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    message_id  UUID NOT NULL REFERENCES messages(id) ON DELETE CASCADE,
+    chunk_id    UUID NOT NULL REFERENCES chunks(id) ON DELETE CASCADE,
+    score       NUMERIC(5,4) NOT NULL CHECK (score >= 0 AND score <= 1),
+    rank        INTEGER NOT NULL,            -- 0 = most relevant
+    created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+    CONSTRAINT ux_sources_message_chunk UNIQUE (message_id, chunk_id)
+);
+
+CREATE INDEX IF NOT EXISTS ix_sources_message_id ON sources (message_id);
+CREATE INDEX IF NOT EXISTS ix_sources_chunk_id ON sources (chunk_id);
 
 -- =====================================================================
 -- End of schema

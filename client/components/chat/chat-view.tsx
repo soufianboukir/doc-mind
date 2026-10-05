@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState, useRef } from "react";
 import { useParams } from "next/navigation";
-import { Loader2, Send } from "lucide-react";
+import { Loader2, Send, Check, Copy } from "lucide-react";
 
 import { getChatMessages, sendChatMessage } from "@/lib/api/chats";
 
@@ -10,17 +10,44 @@ import type { Message, SourceChunk } from "@/types/chat";
 import Image from "next/image";
 import { useAuth } from "@/context/auth-context";
 import { MarkdownContent } from "@/app/chat/mardown-content";
+import { text } from "stream/consumers";
 
 interface AssistantResponse {
   message: Message;
   sources: SourceChunk[];
 }
 
+
+async function copyToClipboard(text: string): Promise<boolean> {
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+
+    // Fallback for non-secure contexts (http on a non-localhost host)
+    const textarea = document.createElement("textarea");
+    textarea.value = text;
+    textarea.style.position = "fixed";
+    textarea.style.opacity = "0";
+
+    document.body.appendChild(textarea);
+    textarea.select();
+
+    const success = document.execCommand("copy");
+    document.body.removeChild(textarea);
+
+    return success;
+  } catch (error) {
+    console.error("Copy failed:", error);
+    return false;
+  }
+}
+
 export default function ChatPage() {
   const { id } = useParams<{ id: string }>();
 
   const [messages, setMessages] = useState<Message[]>([]);
-  const [sources, setSources] = useState<Record<string, SourceChunk[]>>({});
 
   const [input, setInput] = useState("");
   const { user } = useAuth();
@@ -32,6 +59,20 @@ export default function ChatPage() {
 
   const bottomRef = useRef<HTMLDivElement>(null);
   const hasScrolledInitially = useRef(false);
+
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  async function handleCopy(messageId: string, text: string) {
+    const success = await copyToClipboard(text);
+
+    if (!success) return;
+
+    setCopiedId(messageId);
+
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    timeoutRef.current = setTimeout(() => setCopiedId(null), 2000);
+  }
 
   // Reset when switching to another chat
   useEffect(() => {
@@ -110,6 +151,7 @@ export default function ChatPage() {
     if (!query || sending) {
       return;
     }
+    
 
     setError(null);
     setSending(true);
@@ -133,38 +175,18 @@ export default function ChatPage() {
     setInput("");
 
     try {
-      // --------------------------------------------------
-      // Send query to backend
-      // --------------------------------------------------
-
       const response: AssistantResponse = await sendChatMessage(id, query);
 
-      // --------------------------------------------------
-      // Replace optimistic user message with real one
-      // and append assistant response
-      // --------------------------------------------------
-
       setMessages((previous) => [
-        ...previous.filter((message) => message.id !== optimisticMessage.id),
-        {
-          ...optimisticMessage,
-          // Backend created_at/id are authoritative.
-          // We don't currently receive the user message
-          // from the query endpoint, so the optimistic
-          // message remains as the visual representation.
-        },
-        response.message,
+        ...previous,
+        { ...response.message, sources: response.sources },
       ]);
 
-      // --------------------------------------------------
-      // Store sources associated with this assistant
-      // message.
-      // --------------------------------------------------
-
-      setSources((previous) => ({
-        ...previous,
-        [response.message.id]: response.sources,
-      }));
+      bottomRef.current?.scrollIntoView({
+        //  Jump instantly on first load, animate for new messages
+        behavior: hasScrolledInitially.current ? "smooth" : "auto",
+        block: "end",
+      });
     } catch (error) {
       console.error(error);
 
@@ -209,7 +231,7 @@ export default function ChatPage() {
               className={
                 message.role === "user"
                   ? "ml-auto max-w-[80%]"
-                  : "mr-auto w-full max-w-[90%]"
+                  : "mr-auto w-full"
               }
             >
               <div className="flex gap-2">
@@ -217,7 +239,7 @@ export default function ChatPage() {
                   className={
                     message.role === "user"
                       ? "rounded-2xl bg-primary px-4 py-3 text-primary-foreground"
-                      : "rounded-2xl border bg-card px-4 py-4"
+                      : "rounded-2xl bg-card py-4 w-[85%]"
                   }
                 >
                   {message.role === "user" ? (
@@ -229,7 +251,7 @@ export default function ChatPage() {
                       <MarkdownContent content={message.content} />
                       <div className="flex gap-2">
                         {message.llm_provider && (
-                          <p className="text-xs bg-green-300 text-green-950 px-2 py-0.5 border border-green-950 rounded-2xl w-[30%] text-center">
+                          <p className="text-xs bg-green-300 text-green-950 px-2 py-0.5 border border-green-950 rounded-2xl text-center">
                             {message.llm_provider}
                           </p>
                         )}
@@ -238,6 +260,25 @@ export default function ChatPage() {
                             {message.latency_ms} ms
                           </p>
                         )}
+                        <button
+                          type="button"
+                          onClick={() => handleCopy(message.id, message.content)}
+                          aria-label={copiedId === message.id ? "Copied" : "Copy message"}
+                          title={copiedId === message.id ? "Copied" : "Copy"}
+                          className="inline-flex cursor-pointer items-center gap-1 rounded-md px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                        >
+                          {copiedId === message.id ? (
+                            <>
+                              <Check className="size-3.5" />
+                              Copied
+                            </>
+                          ) : (
+                            <>
+                              <Copy className="size-3.5" />
+                              Copy
+                            </>
+                          )}
+                        </button>
                       </div>
                     </>
                   )}
@@ -257,34 +298,38 @@ export default function ChatPage() {
               {/* Sources */}
 
               {message.role === "assistant" &&
-                sources[message.id]?.length > 0 && (
-                  <div className="mt-3 space-y-2">
-                    <p className="text-xs font-medium text-muted-foreground">
-                      Sources
-                    </p>
+                message.sources &&
+                message.sources.length > 0 && (
+                  <div className="mt-3">
+                    <summary className="cursor-pointer select-none text-xs font-medium text-muted-foreground hover:text-foreground">
+                      Sources ({message.sources.length})
+                    </summary>
 
-                    {sources[message.id].map((source) => (
-                      <div
-                        key={source.chunk_id}
-                        className="rounded-lg border bg-muted/30 p-3"
-                      >
-                        <div className="flex items-center justify-between gap-3">
-                          <span className="truncate text-xs font-medium">
-                            {source.filename}
-                          </span>
-
-                          {source.page_number && (
-                            <span className="shrink-0 text-xs text-muted-foreground">
-                              Page {source.page_number}
+                    <div className="mt-2 space-y-2">
+                      {message.sources.map((source) => (
+                        <div
+                          key={source.chunk_id}
+                          className="rounded-lg border bg-muted/30 p-3"
+                        >
+                          <div className="flex items-center justify-between gap-3">
+                            <span className="truncate text-xs font-medium">
+                              {source.filename}
                             </span>
-                          )}
-                        </div>
 
-                        <p className="mt-2 line-clamp-3 text-xs text-muted-foreground">
-                          {source.content}
-                        </p>
-                      </div>
-                    ))}
+                            <div className="flex shrink-0 items-center gap-2 text-xs text-muted-foreground">
+                              {source.page_number && (
+                                <span>Page {source.page_number}</span>
+                              )}
+                              <span>Score {source.score.toFixed(2)}</span>
+                            </div>
+                          </div>
+
+                            <p className="mt-2 line-clamp-3 text-xs text-muted-foreground">
+                              {source.content}
+                            </p>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
             </div>

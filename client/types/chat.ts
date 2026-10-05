@@ -57,6 +57,7 @@ export interface Message {
   latency_ms: number | null;
   llm_provider: string | null;
   created_at: string;
+  sources?: SourceChunk[];
 }
 
 export interface SourceChunk {

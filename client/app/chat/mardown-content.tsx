@@ -1,20 +1,43 @@
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import remarkMath from "remark-math";
+import rehypeKatex from "rehype-katex";
+
+import "katex/dist/katex.min.css";
 
 interface MarkdownContentProps {
   content: string;
 }
 
+// LLMs often write math as \( ... \) and \[ ... \], but remark-math
+// only understands $ ... $ and $$ ... $$. Convert one to the other.
+function normalizeMath(text: string): string {
+  return text
+    .replace(
+      /\\\[([\s\S]*?)\\\]/g,
+      (_, formula: string) => `\n$$\n${formula.trim()}\n$$\n`,
+    )
+    .replace(
+      /\\\(([\s\S]*?)\\\)/g,
+      (_, formula: string) => `$${formula.trim()}$`,
+    );
+}
+
 // Models sometimes put bullets inline ("include: * **Title:** ... * **Next:** ...").
 // Markdown needs each bullet on its own line, so split them here.
-function normalizeMarkdown(text: string): string {
+function normalizeBullets(text: string): string {
   return text.replace(/(\S)[ \t]+\*[ \t]+(?=\*\*)/g, "$1\n* ");
+}
+
+function normalizeMarkdown(text: string): string {
+  return normalizeBullets(normalizeMath(text));
 }
 
 export function MarkdownContent({ content }: MarkdownContentProps) {
   return (
     <ReactMarkdown
-      remarkPlugins={[remarkGfm]}
+      remarkPlugins={[remarkGfm, remarkMath]}
+      rehypePlugins={[rehypeKatex]}
       components={{
         p: ({ children }) => (
           <p className="mb-3 text-sm leading-relaxed last:mb-0">{children}</p>
