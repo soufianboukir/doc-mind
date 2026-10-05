@@ -13,7 +13,7 @@ from db.db import get_db
 from models.chat import Chat
 from collections import defaultdict
 
-from models.chunk import Chunk     
+from models.chunk import Chunk
 from models.document import Document
 from models.source import MessageSource
 from schemas.chat_query import MessageWithSources
@@ -141,8 +141,7 @@ def query_chat(
 
     # Keep only sufficiently similar chunks
     results = [
-        chunk for chunk in results
-        if float(chunk["similarity"]) > MIN_SIMILARITY
+        chunk for chunk in results if float(chunk["similarity"]) > MIN_SIMILARITY
     ]
 
     if not results:

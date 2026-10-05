@@ -108,4 +108,3 @@ export function MarkdownContent({ content }: MarkdownContentProps) {
     </ReactMarkdown>
   );
 }
-

@@ -132,14 +132,12 @@ export default function ChatPage() {
     setInput("");
 
     try {
-
       const response: AssistantResponse = await sendChatMessage(id, query);
 
       setMessages((previous) => [
         ...previous,
         { ...response.message, sources: response.sources },
       ]);
-
     } catch (error) {
       console.error(error);
 
@@ -251,7 +249,9 @@ export default function ChatPage() {
                             </span>
 
                             <div className="flex shrink-0 items-center gap-2 text-xs text-muted-foreground">
-                              {source.page_number && <span>Page {source.page_number}</span>}
+                              {source.page_number && (
+                                <span>Page {source.page_number}</span>
+                              )}
                               <span>Score {source.score.toFixed(2)}</span>
                             </div>
                           </div>
