@@ -133,33 +133,16 @@ export default function ChatPage() {
     setInput("");
 
     try {
-      // --------------------------------------------------
-      // Send query to backend
-      // --------------------------------------------------
 
       const response: AssistantResponse = await sendChatMessage(id, query);
-
-      // --------------------------------------------------
-      // Replace optimistic user message with real one
-      // and append assistant response
-      // --------------------------------------------------
 
       setMessages((previous) => [
         ...previous.filter((message) => message.id !== optimisticMessage.id),
         {
           ...optimisticMessage,
-          // Backend created_at/id are authoritative.
-          // We don't currently receive the user message
-          // from the query endpoint, so the optimistic
-          // message remains as the visual representation.
         },
         response.message,
       ]);
-
-      // --------------------------------------------------
-      // Store sources associated with this assistant
-      // message.
-      // --------------------------------------------------
 
       setSources((previous) => ({
         ...previous,
@@ -209,7 +192,7 @@ export default function ChatPage() {
               className={
                 message.role === "user"
                   ? "ml-auto max-w-[80%]"
-                  : "mr-auto w-full max-w-[90%]"
+                  : "mr-auto w-full"
               }
             >
               <div className="flex gap-2">
@@ -217,7 +200,7 @@ export default function ChatPage() {
                   className={
                     message.role === "user"
                       ? "rounded-2xl bg-primary px-4 py-3 text-primary-foreground"
-                      : "rounded-2xl border bg-card px-4 py-4"
+                      : "rounded-2xl border bg-card px-4 py-4 w-[85%]"
                   }
                 >
                   {message.role === "user" ? (
@@ -229,7 +212,7 @@ export default function ChatPage() {
                       <MarkdownContent content={message.content} />
                       <div className="flex gap-2">
                         {message.llm_provider && (
-                          <p className="text-xs bg-green-300 text-green-950 px-2 py-0.5 border border-green-950 rounded-2xl w-[30%] text-center">
+                          <p className="text-xs bg-green-300 text-green-950 px-2 py-0.5 border border-green-950 rounded-2xl text-center">
                             {message.llm_provider}
                           </p>
                         )}

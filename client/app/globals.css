@@ -23,6 +23,11 @@ body {
     "Noto Color Emoji";
 }
 
+.katex-display {
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
 @theme {
   --font-geist: var(--font-geist), sans-serif;
 }
