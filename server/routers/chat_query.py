@@ -37,7 +37,7 @@ router = APIRouter(
     tags=["chat-query"],
 )
 
-MIN_SIMILARITY = 0.5
+MIN_SIMILARITY = 0.4
 
 
 @router.post(

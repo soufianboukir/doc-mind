@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState, useRef } from "react";
 import { useParams } from "next/navigation";
-import { Loader2, Send } from "lucide-react";
+import { Loader2, Send, Check, Copy } from "lucide-react";
 
 import { getChatMessages, sendChatMessage } from "@/lib/api/chats";
 
@@ -10,10 +10,38 @@ import type { Message, SourceChunk } from "@/types/chat";
 import Image from "next/image";
 import { useAuth } from "@/context/auth-context";
 import { MarkdownContent } from "@/app/chat/mardown-content";
+import { text } from "stream/consumers";
 
 interface AssistantResponse {
   message: Message;
   sources: SourceChunk[];
+}
+
+
+async function copyToClipboard(text: string): Promise<boolean> {
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+
+    // Fallback for non-secure contexts (http on a non-localhost host)
+    const textarea = document.createElement("textarea");
+    textarea.value = text;
+    textarea.style.position = "fixed";
+    textarea.style.opacity = "0";
+
+    document.body.appendChild(textarea);
+    textarea.select();
+
+    const success = document.execCommand("copy");
+    document.body.removeChild(textarea);
+
+    return success;
+  } catch (error) {
+    console.error("Copy failed:", error);
+    return false;
+  }
 }
 
 export default function ChatPage() {
@@ -31,6 +59,20 @@ export default function ChatPage() {
 
   const bottomRef = useRef<HTMLDivElement>(null);
   const hasScrolledInitially = useRef(false);
+
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  async function handleCopy(messageId: string, text: string) {
+    const success = await copyToClipboard(text);
+
+    if (!success) return;
+
+    setCopiedId(messageId);
+
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    timeoutRef.current = setTimeout(() => setCopiedId(null), 2000);
+  }
 
   // Reset when switching to another chat
   useEffect(() => {
@@ -109,6 +151,7 @@ export default function ChatPage() {
     if (!query || sending) {
       return;
     }
+    
 
     setError(null);
     setSending(true);
@@ -138,6 +181,12 @@ export default function ChatPage() {
         ...previous,
         { ...response.message, sources: response.sources },
       ]);
+
+      bottomRef.current?.scrollIntoView({
+        //  Jump instantly on first load, animate for new messages
+        behavior: hasScrolledInitially.current ? "smooth" : "auto",
+        block: "end",
+      });
     } catch (error) {
       console.error(error);
 
@@ -211,6 +260,25 @@ export default function ChatPage() {
                             {message.latency_ms} ms
                           </p>
                         )}
+                        <button
+                          type="button"
+                          onClick={() => handleCopy(message.id, message.content)}
+                          aria-label={copiedId === message.id ? "Copied" : "Copy message"}
+                          title={copiedId === message.id ? "Copied" : "Copy"}
+                          className="inline-flex cursor-pointer items-center gap-1 rounded-md px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                        >
+                          {copiedId === message.id ? (
+                            <>
+                              <Check className="size-3.5" />
+                              Copied
+                            </>
+                          ) : (
+                            <>
+                              <Copy className="size-3.5" />
+                              Copy
+                            </>
+                          )}
+                        </button>
                       </div>
                     </>
                   )}
@@ -256,9 +324,9 @@ export default function ChatPage() {
                             </div>
                           </div>
 
-                          <p className="mt-2 line-clamp-3 text-xs text-muted-foreground">
-                            {source.content}
-                          </p>
+                            <p className="mt-2 line-clamp-3 text-xs text-muted-foreground">
+                              {source.content}
+                            </p>
                         </div>
                       ))}
                     </div>
