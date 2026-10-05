@@ -20,7 +20,6 @@ export default function ChatPage() {
   const { id } = useParams<{ id: string }>();
 
   const [messages, setMessages] = useState<Message[]>([]);
-  const [sources, setSources] = useState<Record<string, SourceChunk[]>>({});
 
   const [input, setInput] = useState("");
   const { user } = useAuth();
@@ -137,17 +136,10 @@ export default function ChatPage() {
       const response: AssistantResponse = await sendChatMessage(id, query);
 
       setMessages((previous) => [
-        ...previous.filter((message) => message.id !== optimisticMessage.id),
-        {
-          ...optimisticMessage,
-        },
-        response.message,
+        ...previous,
+        { ...response.message, sources: response.sources },
       ]);
 
-      setSources((previous) => ({
-        ...previous,
-        [response.message.id]: response.sources,
-      }));
     } catch (error) {
       console.error(error);
 
@@ -200,7 +192,7 @@ export default function ChatPage() {
                   className={
                     message.role === "user"
                       ? "rounded-2xl bg-primary px-4 py-3 text-primary-foreground"
-                      : "rounded-2xl border bg-card px-4 py-4 w-[85%]"
+                      : "rounded-2xl bg-card py-4 w-[85%]"
                   }
                 >
                   {message.role === "user" ? (
@@ -240,34 +232,36 @@ export default function ChatPage() {
               {/* Sources */}
 
               {message.role === "assistant" &&
-                sources[message.id]?.length > 0 && (
-                  <div className="mt-3 space-y-2">
-                    <p className="text-xs font-medium text-muted-foreground">
-                      Sources
-                    </p>
+                message.sources &&
+                message.sources.length > 0 && (
+                  <div className="mt-3">
+                    <summary className="cursor-pointer select-none text-xs font-medium text-muted-foreground hover:text-foreground">
+                      Sources ({message.sources.length})
+                    </summary>
 
-                    {sources[message.id].map((source) => (
-                      <div
-                        key={source.chunk_id}
-                        className="rounded-lg border bg-muted/30 p-3"
-                      >
-                        <div className="flex items-center justify-between gap-3">
-                          <span className="truncate text-xs font-medium">
-                            {source.filename}
-                          </span>
-
-                          {source.page_number && (
-                            <span className="shrink-0 text-xs text-muted-foreground">
-                              Page {source.page_number}
+                    <div className="mt-2 space-y-2">
+                      {message.sources.map((source) => (
+                        <div
+                          key={source.chunk_id}
+                          className="rounded-lg border bg-muted/30 p-3"
+                        >
+                          <div className="flex items-center justify-between gap-3">
+                            <span className="truncate text-xs font-medium">
+                              {source.filename}
                             </span>
-                          )}
-                        </div>
 
-                        <p className="mt-2 line-clamp-3 text-xs text-muted-foreground">
-                          {source.content}
-                        </p>
-                      </div>
-                    ))}
+                            <div className="flex shrink-0 items-center gap-2 text-xs text-muted-foreground">
+                              {source.page_number && <span>Page {source.page_number}</span>}
+                              <span>Score {source.score.toFixed(2)}</span>
+                            </div>
+                          </div>
+
+                          <p className="mt-2 line-clamp-3 text-xs text-muted-foreground">
+                            {source.content}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
             </div>
