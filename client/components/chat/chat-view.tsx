@@ -10,13 +10,11 @@ import type { Message, SourceChunk } from "@/types/chat";
 import Image from "next/image";
 import { useAuth } from "@/context/auth-context";
 import { MarkdownContent } from "@/app/chat/mardown-content";
-import { text } from "stream/consumers";
 
 interface AssistantResponse {
   message: Message;
   sources: SourceChunk[];
 }
-
 
 async function copyToClipboard(text: string): Promise<boolean> {
   try {
@@ -82,14 +80,19 @@ export default function ChatPage() {
   useEffect(() => {
     if (loadingMessages) return;
 
-    bottomRef.current?.scrollIntoView({
-      // Jump instantly on first load, animate for new messages
-      behavior: hasScrolledInitially.current ? "smooth" : "auto",
-      block: "end",
+    // Wait one frame so the new message (Markdown, formulas) is laid out
+    const frame = requestAnimationFrame(() => {
+      bottomRef.current?.scrollIntoView({
+        // Jump instantly on first load, animate for new messages
+        behavior: hasScrolledInitially.current ? "smooth" : "auto",
+        block: "end",
+      });
+
+      hasScrolledInitially.current = true;
     });
 
-    hasScrolledInitially.current = true;
-  }, [messages, sending, loadingMessages]);
+    return () => cancelAnimationFrame(frame);
+  }, [messages, sending, error, loadingMessages]);
 
   const loadMessages = useCallback(async () => {
     try {
@@ -151,7 +154,6 @@ export default function ChatPage() {
     if (!query || sending) {
       return;
     }
-    
 
     setError(null);
     setSending(true);
@@ -181,12 +183,6 @@ export default function ChatPage() {
         ...previous,
         { ...response.message, sources: response.sources },
       ]);
-
-      bottomRef.current?.scrollIntoView({
-        //  Jump instantly on first load, animate for new messages
-        behavior: hasScrolledInitially.current ? "smooth" : "auto",
-        block: "end",
-      });
     } catch (error) {
       console.error(error);
 
@@ -239,7 +235,7 @@ export default function ChatPage() {
                   className={
                     message.role === "user"
                       ? "rounded-2xl bg-primary px-4 py-3 text-primary-foreground"
-                      : "rounded-2xl bg-card py-4 w-[85%]"
+                      : "rounded-2xl py-4 w-[85%]"
                   }
                 >
                   {message.role === "user" ? (
@@ -262,8 +258,12 @@ export default function ChatPage() {
                         )}
                         <button
                           type="button"
-                          onClick={() => handleCopy(message.id, message.content)}
-                          aria-label={copiedId === message.id ? "Copied" : "Copy message"}
+                          onClick={() =>
+                            handleCopy(message.id, message.content)
+                          }
+                          aria-label={
+                            copiedId === message.id ? "Copied" : "Copy message"
+                          }
                           title={copiedId === message.id ? "Copied" : "Copy"}
                           className="inline-flex cursor-pointer items-center gap-1 rounded-md px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                         >
@@ -324,9 +324,9 @@ export default function ChatPage() {
                             </div>
                           </div>
 
-                            <p className="mt-2 line-clamp-3 text-xs text-muted-foreground">
-                              {source.content}
-                            </p>
+                          <p className="mt-2 line-clamp-3 text-xs text-muted-foreground">
+                            {source.content}
+                          </p>
                         </div>
                       ))}
                     </div>
@@ -334,6 +334,14 @@ export default function ChatPage() {
                 )}
             </div>
           ))}
+
+          {messages.length === 0 && !loadingMessages && (
+            <div className="mx-auto">
+              <p className="text-2xl font-semibold">
+                Hello {user?.display_name}, Start a conversation
+              </p>
+            </div>
+          )}
 
           {/* Generation indicator */}
 
