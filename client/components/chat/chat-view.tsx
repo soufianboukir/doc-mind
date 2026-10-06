@@ -335,6 +335,15 @@ export default function ChatPage() {
             </div>
           ))}
 
+
+          {
+            messages.length === 0 && !loadingMessages && (
+              <div className="mx-auto">
+                <p className="text-2xl font-semibold">Hello {user?.display_name}, Start a conversation</p>
+              </div>  
+            )
+          }
+
           {/* Generation indicator */}
 
           {sending && (
