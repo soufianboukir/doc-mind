@@ -16,7 +16,6 @@ interface AssistantResponse {
   sources: SourceChunk[];
 }
 
-
 async function copyToClipboard(text: string): Promise<boolean> {
   try {
     if (navigator.clipboard && window.isSecureContext) {
@@ -155,7 +154,6 @@ export default function ChatPage() {
     if (!query || sending) {
       return;
     }
-    
 
     setError(null);
     setSending(true);
@@ -260,8 +258,12 @@ export default function ChatPage() {
                         )}
                         <button
                           type="button"
-                          onClick={() => handleCopy(message.id, message.content)}
-                          aria-label={copiedId === message.id ? "Copied" : "Copy message"}
+                          onClick={() =>
+                            handleCopy(message.id, message.content)
+                          }
+                          aria-label={
+                            copiedId === message.id ? "Copied" : "Copy message"
+                          }
                           title={copiedId === message.id ? "Copied" : "Copy"}
                           className="inline-flex cursor-pointer items-center gap-1 rounded-md px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                         >
@@ -322,9 +324,9 @@ export default function ChatPage() {
                             </div>
                           </div>
 
-                            <p className="mt-2 line-clamp-3 text-xs text-muted-foreground">
-                              {source.content}
-                            </p>
+                          <p className="mt-2 line-clamp-3 text-xs text-muted-foreground">
+                            {source.content}
+                          </p>
                         </div>
                       ))}
                     </div>
@@ -333,14 +335,13 @@ export default function ChatPage() {
             </div>
           ))}
 
-
-          {
-            messages.length === 0 && !loadingMessages && (
-              <div className="mx-auto">
-                <p className="text-2xl font-semibold">Hello {user?.display_name}, Start a conversation</p>
-              </div>  
-            )
-          }
+          {messages.length === 0 && !loadingMessages && (
+            <div className="mx-auto">
+              <p className="text-2xl font-semibold">
+                Hello {user?.display_name}, Start a conversation
+              </p>
+            </div>
+          )}
 
           {/* Generation indicator */}
 
