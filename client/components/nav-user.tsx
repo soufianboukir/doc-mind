@@ -17,11 +17,28 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { useAuth } from "@/context/auth-context";
-import { ChevronsUpDownIcon, SparklesIcon, LogOutIcon } from "lucide-react";
+import { ChevronsUpDownIcon, LogOutIcon } from "lucide-react";
+import { useRouter } from "next/navigation";
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export function NavUser() {
   const { user } = useAuth();
   const { isMobile } = useSidebar();
+  const router = useRouter();
+
+  const logout = async () => {
+    const response = await fetch(`${API_URL}/api/v1/auth/logout`, {
+      method: "POST",
+      credentials: "include",
+    });
+
+    if (response.ok) {
+      router.replace("/login");
+      router.refresh();
+    } else {
+      console.error("Logout failed");
+    }
+  };
 
   if (!user) return null;
 
@@ -79,7 +96,7 @@ export function NavUser() {
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={logout}>
                 <LogOutIcon />
                 Log out
               </DropdownMenuItem>
