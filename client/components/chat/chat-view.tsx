@@ -10,7 +10,6 @@ import type { Message, SourceChunk } from "@/types/chat";
 import Image from "next/image";
 import { useAuth } from "@/context/auth-context";
 import { MarkdownContent } from "@/app/chat/mardown-content";
-import { text } from "stream/consumers";
 
 interface AssistantResponse {
   message: Message;
@@ -82,14 +81,19 @@ export default function ChatPage() {
   useEffect(() => {
     if (loadingMessages) return;
 
-    bottomRef.current?.scrollIntoView({
-      // Jump instantly on first load, animate for new messages
-      behavior: hasScrolledInitially.current ? "smooth" : "auto",
-      block: "end",
+    // Wait one frame so the new message (Markdown, formulas) is laid out
+    const frame = requestAnimationFrame(() => {
+      bottomRef.current?.scrollIntoView({
+        // Jump instantly on first load, animate for new messages
+        behavior: hasScrolledInitially.current ? "smooth" : "auto",
+        block: "end",
+      });
+
+      hasScrolledInitially.current = true;
     });
 
-    hasScrolledInitially.current = true;
-  }, [messages, sending, loadingMessages]);
+    return () => cancelAnimationFrame(frame);
+  }, [messages, sending, error, loadingMessages]);
 
   const loadMessages = useCallback(async () => {
     try {
@@ -181,12 +185,6 @@ export default function ChatPage() {
         ...previous,
         { ...response.message, sources: response.sources },
       ]);
-
-      bottomRef.current?.scrollIntoView({
-        //  Jump instantly on first load, animate for new messages
-        behavior: hasScrolledInitially.current ? "smooth" : "auto",
-        block: "end",
-      });
     } catch (error) {
       console.error(error);
 
@@ -239,7 +237,7 @@ export default function ChatPage() {
                   className={
                     message.role === "user"
                       ? "rounded-2xl bg-primary px-4 py-3 text-primary-foreground"
-                      : "rounded-2xl bg-card py-4 w-[85%]"
+                      : "rounded-2xl py-4 w-[85%]"
                   }
                 >
                   {message.role === "user" ? (
