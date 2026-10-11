@@ -35,12 +35,14 @@ doc-mind/
     models/        SQLAlchemy models
     schemas/       Pydantic schemas
     config/        settings loaded from environment
-  schema.sql       database schema
+    schema.sql     database schema
+    app.py         server entry
+    docker-compose.yml    
 ```
 
 ## Database
 
-The full schema is in `schema.sql` and is safe to re-run.
+The full schema is in `server/db/schema.sql` and is safe to re-run.
 
 | Table | Purpose |
 |---|---|
@@ -65,6 +67,7 @@ Relationships: a user owns chats, a chat has documents and messages, a document 
 ### 1. Database
 
 ```bash
+cd server
 docker compose up -d
 ```
 
@@ -86,7 +89,26 @@ pip install -r requirements.txt
 Create `server/.env`:
 
 ```env
-GEMINI_API_KEY=your_key_here
+DATABASE_URL=postgresql+psycopg2://docmind:docmind@localhost:5432/doc_mind_db
+
+JWT_SECRET_KEY=DIOJRI34U5834KJ5IOJ6LKL
+JWT_ALGORITHM=HS256
+
+ACCESS_TOKEN_EXPIRE_MINUTES=3600
+REFRESH_TOKEN_EXPIRE_DAYS=30
+
+FRONTEND_URL=http://localhost:3000
+
+CLOUDINARY_CLOUD_NAME=value
+CLOUDINARY_API_KEY=value
+CLOUDINARY_API_SECRET=value
+
+
+COHERE_API_KEY=cohere-api-key
+
+ENVIRONMENT=development
+
+GEMINI_API_KEY=api-key
 GEMINI_MODEL=gemini-2.5-flash
 # Database and authentication settings: see config/config.py
 ```
@@ -120,14 +142,6 @@ npm run dev
 
 Open `http://localhost:3000`.
 
-## Main API endpoints
-
-| Method | Endpoint | Description |
-|---|---|---|
-| POST | `/api/v1/auth/logout` | Clear the session cookie |
-| POST | `/api/v1/chats/{chat_id}/query` | Ask a question, returns the answer and its sources |
-| GET | `/api/v1/chats/{chat_id}/messages` | List a chat's messages with their sources |
-
 ## How a question is answered
 
 1. The question is embedded with bge-m3.
@@ -140,3 +154,8 @@ Open `http://localhost:3000`.
 
 - Claim-level faithfulness scoring: check each statement in an answer against the retrieved chunks
 - Cross-document conflict detection: flag when two documents disagree
+
+built with ❤️ by **soufian**.
+
+
+
