@@ -7,6 +7,19 @@ import {
 
 import { Button } from "@/components/ui/button";
 
+import {
+  FileUp,
+  Languages,
+  MessagesSquare,
+  Moon,
+  Quote,
+  Scale,
+  ShieldCheck,
+  Sigma,
+  Timer,
+} from "lucide-react";
+
+
 const display = Newsreader({
   subsets: ["latin"],
   variable: "--font-display",
@@ -22,6 +35,41 @@ export const metadata = {
   description:
     "Upload documents, ask questions in Arabic, French or English, and check every claim against the page it came from.",
 };
+
+
+const features = [
+  {
+    icon: MessagesSquare,
+    title: "A chat for every project",
+    text: "Each chat keeps its own documents and history, separate from your other work.",
+  },
+  {
+    icon: FileUp,
+    title: "Upload and track processing",
+    text: "Add your files and watch each one move from pending to ready.",
+  },
+  {
+    icon: Languages,
+    title: "Arabic, French and English",
+    text: "Ask in one language, find answers in documents written in another.",
+  },
+  {
+    icon: Quote,
+    title: "Sources on every answer",
+    text: "See the file, the page and the similarity score behind each reply.",
+  },
+  {
+    icon: Scale,
+    title: "Conflict detection",
+    text: "When two documents disagree, DocMind tells you instead of picking one.",
+  },
+  {
+    icon: Sigma,
+    title: "Readable answers",
+    text: "Bold text, lists and math formulas render properly. Copy any answer in one click.",
+  }
+];
+
 
 
 export default function LandingPage() {
@@ -162,6 +210,22 @@ export default function LandingPage() {
             </div>
           </div>
         </div>
+
+                <ul className="mt-16 grid gap-x-10 gap-y-8 border-t pt-10 sm:grid-cols-2 lg:mt-20 lg:grid-cols-3">
+          {features.map(({ icon: Icon, title, text, extra }) => (
+            <li key={title} className="flex gap-3.5">
+              <Icon className="mt-0.5 size-5 shrink-0 text-primary" />
+              <div>
+                <h2 className="font-semibold">{title}</h2>
+                <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+                  {text}
+                  {extra}
+                </p>
+              </div>
+            </li>
+          ))}
+        </ul>
+
       </div>
     </section>
   );
