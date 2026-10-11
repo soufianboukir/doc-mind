@@ -247,14 +247,15 @@ export default function ChatPage() {
                       <MarkdownContent content={message.content} />
                       <div className="flex gap-2">
                         {message.llm_provider && (
-                          <p className="text-xs bg-green-300 text-green-950 px-2 py-0.5 border border-green-950 rounded-2xl text-center">
+                          <span className="rounded-full border border-emerald-700/40 bg-emerald-500/15 px-2 py-0.5 text-emerald-900 dark:text-emerald-200 text-sm">
+
                             {message.llm_provider}
-                          </p>
+                          </span>
                         )}
                         {message.latency_ms && (
-                          <p className="text-xs bg-blue-400 text-blue-950 px-2 py-0.5 border border-blue-950 rounded-2xl w-20 text-center">
+                          <span className="rounded-full border border-blue-700/40 bg-blue-500/15 px-2 py-0.5 text-blue-900 dark:text-blue-200 text-sm">
                             {message.latency_ms} ms
-                          </p>
+                          </span>
                         )}
                         <button
                           type="button"

@@ -2,16 +2,7 @@ import Link from "next/link";
 import { Hanken_Grotesk, Newsreader } from "next/font/google";
 import {
   Copy,
-  FileText,
-  FileUp,
-  Languages,
-  MessagesSquare,
-  Moon,
-  Quote,
-  Scale,
-  ShieldCheck,
-  Sigma,
-  Timer,
+  Sparkles,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -32,87 +23,6 @@ export const metadata = {
     "Upload documents, ask questions in Arabic, French or English, and check every claim against the page it came from.",
 };
 
-const features = [
-  {
-    icon: MessagesSquare,
-    title: "A chat for every project",
-    text: "Each chat keeps its own documents and history, separate from your other work.",
-  },
-  {
-    icon: FileUp,
-    title: "Upload and track processing",
-    text: "Add your files and watch each one move from pending to ready.",
-  },
-  {
-    icon: Languages,
-    title: "Arabic, French and English",
-    text: "Ask in one language, find answers in documents written in another.",
-    extra: (
-      <span dir="rtl" lang="ar" className="mt-1 block text-foreground/80">
-        كم مدة الإشعار؟
-      </span>
-    ),
-  },
-  {
-    icon: Quote,
-    title: "Sources on every answer",
-    text: "See the file, the page and the similarity score behind each reply.",
-  },
-  {
-    icon: ShieldCheck,
-    title: "Claim-by-claim checking",
-    text: "Each statement is marked supported, weak, unverified or contradicted.",
-  },
-  {
-    icon: Scale,
-    title: "Conflict detection",
-    text: "When two documents disagree, DocMind tells you instead of picking one.",
-  },
-  {
-    icon: Sigma,
-    title: "Readable answers",
-    text: "Bold text, lists and math formulas render properly. Copy any answer in one click.",
-  },
-  {
-    icon: Timer,
-    title: "Model and speed shown",
-    text: "Every reply shows which model answered and how long it took.",
-  },
-  {
-    icon: Moon,
-    title: "Light and dark mode",
-    text: "Follows your system setting, or switch whenever you like.",
-  },
-];
-
-function Verdict({
-  tone,
-  label,
-}: {
-  tone: "ok" | "weak" | "bad";
-  label: string;
-}) {
-  const styles = {
-    ok: "bg-emerald-500/15 text-emerald-800 dark:text-emerald-300",
-    weak: "bg-amber-500/15 text-amber-800 dark:text-amber-300",
-    bad: "bg-rose-500/15 text-rose-800 dark:text-rose-300",
-  } as const;
-
-  const dots = {
-    ok: "bg-emerald-500",
-    weak: "bg-amber-500",
-    bad: "bg-rose-500",
-  } as const;
-
-  return (
-    <span
-      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${styles[tone]}`}
-    >
-      <span className={`size-1.5 rounded-full ${dots[tone]}`} />
-      {label}
-    </span>
-  );
-}
 
 export default function LandingPage() {
   return (
@@ -162,7 +72,7 @@ export default function LandingPage() {
         {/* Brand */}
         <div className="flex items-center gap-2.5">
           <span className="flex size-9 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-            <FileText className="size-5" />
+            <Sparkles className="size-5" />
           </span>
           <span className="font-[family-name:var(--font-display)] text-2xl font-semibold tracking-tight">
             DocMind
@@ -182,11 +92,10 @@ export default function LandingPage() {
             </p>
 
             <div className="mt-9 flex flex-wrap gap-3">
-              <Button asChild size="lg" className="h-12 px-7 text-base">
-                <Link href="/register">Create account</Link>
+              <Button size="lg" className="h-12 px-7 text-base">
+                <Link href="/signup">Create account</Link>
               </Button>
               <Button
-                asChild
                 size="lg"
                 variant="outline"
                 className="h-12 px-7 text-base"
@@ -220,20 +129,6 @@ export default function LandingPage() {
                 </span>
               </p>
 
-              <div className="mt-4 flex flex-wrap gap-2">
-                <Verdict tone="ok" label="Supported 94%" />
-                <Verdict tone="weak" label="Weak 52%" />
-                <Verdict tone="bad" label="Contradicted 88%" />
-              </div>
-
-              <div className="mt-4 flex items-start gap-2.5 rounded-xl border border-amber-500/40 bg-amber-500/10 p-3 text-sm">
-                <Scale className="mt-0.5 size-4 shrink-0 text-amber-700 dark:text-amber-300" />
-                <p>
-                  <span className="font-medium">Your documents disagree.</span>{" "}
-                  contract.pdf says 30 days on page 4, annex.pdf says 60 days
-                  on page 2.
-                </p>
-              </div>
 
               <div className="mt-4 rounded-xl border bg-muted/40 p-3">
                 <div className="flex items-center justify-between gap-3 text-xs">
@@ -267,22 +162,6 @@ export default function LandingPage() {
             </div>
           </div>
         </div>
-
-        {/* Everything it does */}
-        <ul className="mt-16 grid gap-x-10 gap-y-8 border-t pt-10 sm:grid-cols-2 lg:mt-20 lg:grid-cols-3">
-          {features.map(({ icon: Icon, title, text, extra }) => (
-            <li key={title} className="flex gap-3.5">
-              <Icon className="mt-0.5 size-5 shrink-0 text-primary" />
-              <div>
-                <h2 className="font-semibold">{title}</h2>
-                <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-                  {text}
-                  {extra}
-                </p>
-              </div>
-            </li>
-          ))}
-        </ul>
       </div>
     </section>
   );

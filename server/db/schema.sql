@@ -153,24 +153,9 @@ CREATE TABLE IF NOT EXISTS messages (
 CREATE INDEX IF NOT EXISTS ix_messages_chat_id ON messages (chat_id);
 CREATE INDEX IF NOT EXISTS ix_messages_chat_created ON messages (chat_id, created_at);
 
--- ---------------------------------------------------------------------
--- 7. conflicts
--- Logged cross-document contradictions surfaced in a given answer.
--- ---------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS conflicts (
-    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    message_id      UUID NOT NULL REFERENCES messages(id) ON DELETE CASCADE,
-    chunk_id_a      UUID NOT NULL REFERENCES chunks(id) ON DELETE CASCADE,
-    chunk_id_b      UUID NOT NULL REFERENCES chunks(id) ON DELETE CASCADE,
-    description     TEXT NOT NULL,           -- human-readable summary of what disagrees
-    created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
-    CONSTRAINT chk_conflict_distinct_chunks CHECK (chunk_id_a <> chunk_id_b)
-);
-
-CREATE INDEX IF NOT EXISTS ix_conflicts_message_id ON conflicts (message_id);
 
 -- ---------------------------------------------------------------------
--- 8. sources
+-- 7. sources
 -- sources are the chunks that contributed to a given answer, along with
 -- their relevance score and rank (0 = most relevant).
 -- ---------------------------------------------------------------------
