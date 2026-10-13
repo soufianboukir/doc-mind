@@ -11,12 +11,9 @@ import {
   FileUp,
   Languages,
   MessagesSquare,
-  Moon,
   Quote,
   Scale,
-  ShieldCheck,
   Sigma,
-  Timer,
 } from "lucide-react";
 
 
@@ -113,7 +110,7 @@ export default function LandingPage() {
       {/* Quiet dotted paper texture */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 [background-image:radial-gradient(color-mix(in_oklab,var(--foreground)_14%,transparent)_1px,transparent_1px)] [background-size:22px_22px] [mask-image:radial-gradient(ellipse_at_65%_35%,black,transparent_72%)]"
+        className="pointer-events-none absolute inset-0"
       />
 
       <div className="relative mx-auto w-full max-w-6xl px-6 py-10 lg:py-14">
@@ -122,7 +119,7 @@ export default function LandingPage() {
           <span className="flex size-9 items-center justify-center rounded-xl bg-primary text-primary-foreground">
             <Sparkles className="size-5" />
           </span>
-          <span className="font-[family-name:var(--font-display)] text-2xl font-semibold tracking-tight">
+          <span className="text-2xl font-semibold tracking-tight">
             DocMind
           </span>
         </div>
@@ -130,7 +127,7 @@ export default function LandingPage() {
         {/* Hero */}
         <div className="mt-14 grid items-center gap-14 lg:mt-20 lg:grid-cols-[5fr_6fr]">
           <div>
-            <h1 className="font-[family-name:var(--font-display)] text-5xl font-medium leading-[1.05] tracking-tight sm:text-6xl">
+            <h1 className="text-5xl font-medium leading-[1.05] tracking-tight sm:text-6xl">
               Ask your documents. Know which answers to trust.
             </h1>
 
@@ -211,20 +208,20 @@ export default function LandingPage() {
           </div>
         </div>
 
-                <ul className="mt-16 grid gap-x-10 gap-y-8 border-t pt-10 sm:grid-cols-2 lg:mt-20 lg:grid-cols-3">
-          {features.map(({ icon: Icon, title, text, extra }) => (
+        <ul className="mt-16 grid gap-x-10 gap-y-8 border-t pt-10 sm:grid-cols-2 lg:mt-20 lg:grid-cols-3">
+          {features.map(({ icon: Icon, title, text }) => (
             <li key={title} className="flex gap-3.5">
               <Icon className="mt-0.5 size-5 shrink-0 text-primary" />
               <div>
                 <h2 className="font-semibold">{title}</h2>
                 <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
                   {text}
-                  {extra}
                 </p>
               </div>
             </li>
           ))}
         </ul>
+
 
       </div>
     </section>
