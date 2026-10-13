@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams } from "next/navigation";
 import { Loader2, Send, Check, Copy } from "lucide-react";
 
@@ -61,6 +61,8 @@ export default function ChatPage() {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const [chatTitle, setChatTitle] = useState("");
+
   async function handleCopy(messageId: string, text: string) {
     const success = await copyToClipboard(text);
 
@@ -94,25 +96,6 @@ export default function ChatPage() {
     return () => cancelAnimationFrame(frame);
   }, [messages, sending, error, loadingMessages]);
 
-  const loadMessages = useCallback(async () => {
-    try {
-      setLoadingMessages(true);
-      setError(null);
-
-      const data = await getChatMessages(id);
-
-      setMessages(data);
-    } catch (error) {
-      console.error(error);
-
-      setError(
-        error instanceof Error ? error.message : "Failed to load messages.",
-      );
-    } finally {
-      setLoadingMessages(false);
-    }
-  }, [id]);
-
   useEffect(() => {
     let cancelled = false;
 
@@ -125,6 +108,9 @@ export default function ChatPage() {
 
         if (!cancelled) {
           setMessages(data);
+          console.log(data);
+          
+          setChatTitle(data.length > 0 ? data[0].title! : "Chat");
         }
       } catch (error) {
         if (!cancelled) {
@@ -167,6 +153,7 @@ export default function ChatPage() {
       chat_id: id,
       role: "user",
       content: query,
+      title: chatTitle || null,
       latency_ms: null,
       llm_provider: null,
       created_at: new Date().toISOString(),
@@ -208,6 +195,10 @@ export default function ChatPage() {
       handleSendMessage();
     }
   }
+
+  useEffect(() => {
+    document.title = `DocMind - ${chatTitle}`;
+  }, [chatTitle]);
 
   if (loadingMessages) {
     return (
