@@ -109,7 +109,7 @@ export default function ChatPage() {
         if (!cancelled) {
           setMessages(data);
           console.log(data);
-          
+
           setChatTitle(data.length > 0 ? data[0].title! : "Chat");
         }
       } catch (error) {
@@ -239,7 +239,6 @@ export default function ChatPage() {
                       <div className="flex gap-2">
                         {message.llm_provider && (
                           <span className="rounded-full border border-emerald-700/40 bg-emerald-500/15 px-2 py-0.5 text-emerald-900 dark:text-emerald-200 text-sm">
-
                             {message.llm_provider}
                           </span>
                         )}

@@ -1,9 +1,6 @@
 import Link from "next/link";
 import { Hanken_Grotesk, Newsreader } from "next/font/google";
-import {
-  Copy,
-  Sparkles,
-} from "lucide-react";
+import { Copy, Sparkles } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 
@@ -15,7 +12,6 @@ import {
   Scale,
   Sigma,
 } from "lucide-react";
-
 
 const display = Newsreader({
   subsets: ["latin"],
@@ -32,7 +28,6 @@ export const metadata = {
   description:
     "Upload documents, ask questions in Arabic, French or English, and check every claim against the page it came from.",
 };
-
 
 const features = [
   {
@@ -64,10 +59,8 @@ const features = [
     icon: Sigma,
     title: "Readable answers",
     text: "Bold text, lists and math formulas render properly. Copy any answer in one click.",
-  }
+  },
 ];
-
-
 
 export default function LandingPage() {
   return (
@@ -108,10 +101,7 @@ export default function LandingPage() {
       `}</style>
 
       {/* Quiet dotted paper texture */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0"
-      />
+      <div aria-hidden className="pointer-events-none absolute inset-0" />
 
       <div className="relative mx-auto w-full max-w-6xl px-6 py-10 lg:py-14">
         {/* Brand */}
@@ -119,9 +109,7 @@ export default function LandingPage() {
           <span className="flex size-9 items-center justify-center rounded-xl bg-primary text-primary-foreground">
             <Sparkles className="size-5" />
           </span>
-          <span className="text-2xl font-semibold tracking-tight">
-            DocMind
-          </span>
+          <span className="text-2xl font-semibold tracking-tight">DocMind</span>
         </div>
 
         {/* Hero */}
@@ -165,15 +153,20 @@ export default function LandingPage() {
                   The contract requires 30 days&rsquo; written notice before
                   cancelling.
                 </span>{" "}
-                <span className="claim claim-weak" style={{ "--d": "1.2s" } as React.CSSProperties}>
+                <span
+                  className="claim claim-weak"
+                  style={{ "--d": "1.2s" } as React.CSSProperties}
+                >
                   Early cancellation may carry a fee of 2% of the remaining
                   value.
                 </span>{" "}
-                <span className="claim claim-bad" style={{ "--d": "1.9s" } as React.CSSProperties}>
+                <span
+                  className="claim claim-bad"
+                  style={{ "--d": "1.9s" } as React.CSSProperties}
+                >
                   Written confirmation is not required.
                 </span>
               </p>
-
 
               <div className="mt-4 rounded-xl border bg-muted/40 p-3">
                 <div className="flex items-center justify-between gap-3 text-xs">
@@ -221,8 +214,6 @@ export default function LandingPage() {
             </li>
           ))}
         </ul>
-
-
       </div>
     </section>
   );
