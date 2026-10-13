@@ -54,6 +54,7 @@ export interface Message {
   chat_id: string;
   role: MessageRole;
   content: string;
+  title: string | null;
   latency_ms: number | null;
   llm_provider: string | null;
   created_at: string;

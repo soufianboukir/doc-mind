@@ -28,9 +28,6 @@ class Settings(BaseSettings):
     gemini_api_key: str
     gemini_model: str = "gemini-2.5-flash"
 
-    groq_api_key: str
-    groq_model: str = "llama-3.3-70b-versatile"
-
     model_config = SettingsConfigDict(
         env_file=ENV_FILE, env_file_encoding="utf-8", extra="ignore"
     )
