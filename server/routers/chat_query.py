@@ -339,7 +339,6 @@ def get_chat_messages(
                 )
             )
 
-
     return [
         MessageWithSources(
             id=message.id,
