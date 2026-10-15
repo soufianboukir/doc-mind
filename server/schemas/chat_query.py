@@ -23,6 +23,7 @@ class MessageOut(BaseModel):
     id: uuid.UUID
     chat_id: uuid.UUID
     role: str
+    title: str | None = None
     content: str
     latency_ms: int | None = None
     llm_provider: str | None = None
