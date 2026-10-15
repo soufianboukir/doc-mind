@@ -7,7 +7,6 @@ export const metadata: Metadata = {
     "A simple and intuitive AI-powered document analysis tool that helps you extract insights and make informed decisions from your documents.",
 };
 
-
 // app/layout.tsx
 import { AuthProvider } from "@/context/auth-context";
 import { ThemeProvider } from "@/components/theme-provider";
