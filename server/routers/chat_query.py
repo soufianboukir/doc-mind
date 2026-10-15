@@ -339,10 +339,12 @@ def get_chat_messages(
                 )
             )
 
+
     return [
         MessageWithSources(
             id=message.id,
             chat_id=message.chat_id,
+            title=chat.title if chat else None,
             role=message.role.value,
             content=message.content,
             latency_ms=message.latency_ms,
