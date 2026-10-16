@@ -8,12 +8,10 @@ from models.chunk import Chunk
 from services.chunking import clean_text, chunk_text
 from services.embedding import generate_embeddings
 from services.pdf_service import extract_pdf_pages
-from services.docx_service import extract_docx_pages
 from services.md_service import extract_md_pages
 
 EXTRACTORS = {
     "application/pdf": extract_pdf_pages,
-    "application/vnd.openxmlformats-officedocument.wordprocessingml.document": extract_docx_pages,
     "text/markdown": extract_md_pages,
     "text/plain": extract_md_pages,
 }
