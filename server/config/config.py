@@ -25,6 +25,9 @@ class Settings(BaseSettings):
     cloudinary_api_key: str
     cloudinary_api_secret: str
 
+    gemini_api_key: str
+    gemini_model: str = "gemini-2.5-flash"
+
     model_config = SettingsConfigDict(
         env_file=ENV_FILE, env_file_encoding="utf-8", extra="ignore"
     )

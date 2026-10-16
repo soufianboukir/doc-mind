@@ -4,7 +4,7 @@ from config.config import settings
 # Cohere's embed-english-light-v3.0 is 384-dim and has a generous free tier.
 # If you'd rather use the full-size model, swap to "embed-english-v3.0"
 # (1024-dim) — just remember to match your DB's vector column size.
-MODEL_NAME = "embed-english-v3.0"
+MODEL_NAME = "embed-multilingual-v3.0"
 EMBEDDING_DIM = 1024
 
 # Cohere caps batch size per request — chunk larger inputs to stay under it.

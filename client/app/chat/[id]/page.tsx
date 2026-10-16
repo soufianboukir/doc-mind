@@ -1,7 +1,5 @@
-export default function ChatPage() {
-  return (
-    <div>
-      <h1>Chat</h1>
-    </div>
-  );
+import Chat from "@/components/chat/chat-view";
+
+export default async function ChatPage() {
+  return <Chat />;
 }
