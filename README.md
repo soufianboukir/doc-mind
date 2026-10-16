@@ -2,6 +2,9 @@
 
 DocMind is a document question-answering app. Users upload documents to a chat, ask questions in Arabic, French or English, and receive answers grounded in their files, with the source passages shown next to each reply.
 
+<img width="2043" height="1030" alt="docmind" src="https://github.com/user-attachments/assets/27dea79b-483d-43fc-867b-ff2b2e6d0a3d" />
+
+
 ## Features
 
 - Cookie-based authentication (register, login, logout)
