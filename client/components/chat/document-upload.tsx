@@ -202,7 +202,7 @@ export function DocumentUpload({ chatId, onUploaded }: DocumentUploadProps) {
         </Button>
 
         <p className="mt-3 text-xs text-muted-foreground">
-          PDF, DOC, DOCX, TXT or Markdown
+          PDF, TXT or Markdown
         </p>
 
         <input
@@ -210,7 +210,7 @@ export function DocumentUpload({ chatId, onUploaded }: DocumentUploadProps) {
           type="file"
           multiple
           hidden
-          accept=".pdf,.doc,.docx,.txt,.md"
+          accept=".pdf,.txt,.md"
           onChange={handleFileChange}
         />
       </div>
