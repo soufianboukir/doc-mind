@@ -78,7 +78,6 @@ export function DocumentUpload({ chatId, onUploaded }: DocumentUploadProps) {
     });
 
     try {
-      // Show uploading state
       setFiles((previous) =>
         previous.map((file) =>
           newFiles.some((newFile) => newFile.id === file.id)
